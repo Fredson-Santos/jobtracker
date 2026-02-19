@@ -9,27 +9,27 @@ const api = axios.create({
 
 // ———— Vagas ————
 export async function fetchVagas(skip = 0, limit = 100) {
-  const { data } = await api.get('/vagas/', { params: { skip, limit } })
+  const { data } = await api.get('/api/vagas/', { params: { skip, limit } })
   return data
 }
 
 export async function fetchVaga(id) {
-  const { data } = await api.get(`/vagas/${id}`)
+  const { data } = await api.get(`/api/vagas/${id}`)
   return data
 }
 
 export async function createVaga(vaga) {
-  const { data } = await api.post('/vagas/', vaga)
+  const { data } = await api.post('/api/vagas/', vaga)
   return data
 }
 
 export async function updateVaga(id, updates) {
-  const { data } = await api.patch(`/vagas/${id}`, updates)
+  const { data } = await api.patch(`/api/vagas/${id}`, updates)
   return data
 }
 
 export async function deleteVaga(id) {
-  const { data } = await api.delete(`/vagas/${id}`)
+  const { data } = await api.delete(`/api/vagas/${id}`)
   return data
 }
 

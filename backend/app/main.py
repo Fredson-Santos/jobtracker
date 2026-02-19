@@ -19,8 +19,8 @@ app.add_middleware(
 def on_startup():
     create_db_and_table()
 
-app.include_router(vagas_router)
-app.include_router(alertas_router)
+app.include_router(vagas_router, prefix="/api")
+app.include_router(alertas_router, prefix="/api")
 
 @app.get("/")
 async def root():
