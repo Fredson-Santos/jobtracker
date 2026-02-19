@@ -14,11 +14,7 @@ export default defineConfig(({ mode }) => {
       proxy: {
         '/api': {
           target: (() => {
-            const target = env.VITE_API_URL || 'http://127.0.0.1:8000';
-            console.log('--- VITE PROXY CONFIG ---');
-            console.log('VITE_API_URL env var:', env.VITE_API_URL);
-            console.log('Proxy target:', target);
-            console.log('-------------------------');
+            const target = env.VITE_API_URL || 'http://127.0.0.1:8015';
             return target;
           })(),
           changeOrigin: true,

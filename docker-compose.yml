@@ -15,6 +15,8 @@ services:
     container_name: jobtracker-frontend
     ports:
       - "8016:8016"
+    environment:
+      - VITE_API_URL=http://backend:8015
     depends_on:
       - backend
     restart: unless-stopped
