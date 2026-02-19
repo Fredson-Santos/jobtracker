@@ -14,7 +14,7 @@ services:
     build: ./frontend
     container_name: jobtracker-frontend
     ports:
-      - "80:80"
+      - "8016:8016"
     depends_on:
       - backend
     restart: unless-stopped
