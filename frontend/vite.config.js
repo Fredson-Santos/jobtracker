@@ -12,14 +12,18 @@ export default defineConfig(({ mode }) => {
       strictPort: true,
       host: env.VITE_HOST === 'true' || env.VITE_HOST,
       proxy: {
-        '/api': env.VITE_API_URL || 'http://127.0.0.1:8000',
+        '/api': {
+          target: env.VITE_API_URL || 'http://127.0.0.1:8000',
+          changeOrigin: true,
+          secure: false,
+        }
       },
     },
     preview: {
       port: parseInt(env.VITE_PORT) || 8016,
       strictPort: true,
       host: env.VITE_HOST === 'true' || env.VITE_HOST,
-      allowedHosts: env.VITE_ALLOWED_HOSTS ? [env.VITE_ALLOWED_HOSTS] : [],
+      allowedHosts: ['jobtracker.conekta.tech', 'localhost', '127.0.0.1'],
     }
   }
 })
