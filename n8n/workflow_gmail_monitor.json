@@ -1,0 +1,197 @@
+{
+  "name": "JobTracker - Gmail Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {
+          "readStatus": "unread",
+          "receivedAfter": "={{ $now.minus({ hours: 1 }).toISO() }}"
+        },
+        "options": {
+          "dataPropertyAttachmentsPrefixName": "attachment_"
+        }
+      },
+      "id": "gmail-trigger",
+      "name": "Gmail Trigger",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "GMAIL_CREDENTIAL_ID",
+          "name": "Gmail Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "agent": "openAiFunctionsAgent",
+        "promptType": "define",
+        "text": "=Você é um assistente que analisa e-mails de processos seletivos de vagas de emprego.\n\n## CONTEXTO\nO usuário está monitorando candidaturas em plataformas como Gupy, Eureca e Universia.\nVocê deve analisar o e-mail recebido e determinar se é relacionado a alguma vaga de emprego.\n\n## ETAPAS\n\n### 1. Verificar se é e-mail relevante\nPrimeiro, use a ferramenta HTTP Request para consultar a lista de empresas monitoradas:\n- Faça GET em `http://{{$env.API_HOST}}/alertas/empresas-monitoradas`\n- Compare com o remetente e conteúdo do e-mail\n\nRemetentes comuns de plataformas:\n- `@gupy.pub` ou `@gupy.io` → Plataforma Gupy\n- `@eureca.me` → Plataforma Eureca  \n- `@universia.net` → Plataforma Universia\n- E-mails diretos de RH de empresas\n\n### 2. Analisar conteúdo do e-mail\nSe o e-mail for relevante, identifique:\n- **empresa**: Nome da empresa (ex: PagBank, Honda, B3)\n- **novo_status**: O novo status baseado no conteúdo:\n  - \"Inscrito\" → confirmação de inscrição\n  - \"Teste Pendente\" → convite para teste online/trilha\n  - \"Entrevista\" → convite para entrevista (técnica, comportamental, etc)\n  - \"Feedback\" → retorno sobre o processo\n  - \"Rejeitado\" → recusa/reprovação\n- **cargo**: Nome da vaga se mencionado\n- **resumo**: Breve resumo do e-mail (1-2 frases)\n\n### 3. Atualizar o banco de dados\nSe for relevante, use a ferramenta HTTP Request para enviar os dados:\n- Faça POST em `http://{{$env.API_HOST}}/alertas/webhook`\n- Envie o JSON com os campos identificados\n\nSe o e-mail NÃO for de nenhuma empresa monitorada ou não for sobre processo seletivo, responda apenas: \"E-mail ignorado - não relevante.\"\n\n## E-MAIL RECEBIDO\n**De:** {{ $json.from }}\n**Assunto:** {{ $json.subject }}\n**Data:** {{ $json.date }}\n**Corpo:**\n{{ $json.textPlain || $json.snippet }}",
+        "options": {
+          "systemMessage": "Você é um assistente especializado em analisar e-mails de processos seletivos. Extraia informações estruturadas e use as ferramentas disponíveis para consultar e atualizar o banco de dados do JobTracker. Sempre responda em português."
+        }
+      },
+      "id": "ai-agent",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.0-flash",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "gemini-model",
+      "name": "Google Gemini Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [340, 520],
+      "credentials": {
+        "googleGeminiApi": {
+          "id": "GEMINI_CREDENTIAL_ID",
+          "name": "Google Gemini"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "simple-memory",
+      "name": "Simple Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [500, 520]
+    },
+    {
+      "parameters": {
+        "name": "consultar_empresas",
+        "description": "Consulta a lista de empresas/vagas monitoradas no JobTracker. Use para verificar se o e-mail recebido é de uma empresa que estamos acompanhando.",
+        "method": "GET",
+        "url": "=http://{{$env.API_HOST || '192.168.18.7:8000'}}/alertas/empresas-monitoradas",
+        "options": {}
+      },
+      "id": "http-get-empresas",
+      "name": "Consultar Empresas",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [620, 520]
+    },
+    {
+      "parameters": {
+        "name": "atualizar_vaga",
+        "description": "Envia dados extraídos do e-mail para atualizar a vaga no banco de dados do JobTracker. Envie um JSON com os campos: empresa (obrigatório), novo_status, cargo, remetente, assunto, resumo.",
+        "method": "POST",
+        "url": "=http://{{$env.API_HOST || '192.168.18.7:8000'}}/alertas/webhook",
+        "sendBody": true,
+        "specifyBody": "json",
+        "options": {
+          "headers": {
+            "Content-Type": "application/json"
+          }
+        }
+      },
+      "id": "http-post-webhook",
+      "name": "Atualizar Vaga",
+      "type": "@n8n/n8n-nodes-langchain.toolHttpRequest",
+      "typeVersion": 1.1,
+      "position": [780, 520]
+    },
+    {
+      "parameters": {
+        "includeCurrentDate": true
+      },
+      "id": "date-time",
+      "name": "Date & Time",
+      "type": "@n8n/n8n-nodes-langchain.toolDateTime",
+      "typeVersion": 1,
+      "position": [940, 520]
+    }
+  ],
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar Empresas": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualizar Vaga": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Date & Time": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "env": {
+    "API_HOST": "192.168.18.7:8000"
+  },
+  "meta": {
+    "description": "Workflow do JobTracker: monitora novos e-mails do Gmail, usa AI Agent (Gemini) para analisar se o e-mail é de uma empresa cadastrada, e atualiza o status da vaga via webhook."
+  }
+}

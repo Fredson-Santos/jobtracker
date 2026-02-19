@@ -7,7 +7,9 @@ class Vaga(SQLModel, table=True):
     
     id: uuid_pkg.UUID = Field(default_factory=uuid_pkg.uuid4, primary_key=True)
     empresa: str
+    cargo: Optional[str] = None
     plataforma: str
+    link: Optional[str] = None
     data_limite: Optional[str] = None
     status: str
     ultima_atualizacao: str

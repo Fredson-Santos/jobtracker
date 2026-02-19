@@ -10,6 +10,11 @@ router = APIRouter(
     prefix="/vagas", tags=["vagas"]
 )
 
+@router.get("/empresas", response_model=List[str])
+def read_empresas(session: Session = Depends(get_session)):
+    return crud.get_unique_companies(session)
+
+
 @router.post("/", response_model=schemas.CreateVaga)
 def create_vaga(vaga: schemas.CreateVaga, session: Session = Depends(get_session)):
     return crud.create_vaga(session=session, vaga=vaga)
