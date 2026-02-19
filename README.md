@@ -47,8 +47,10 @@ A maneira mais fácil de rodar todo o ambiente (Backend + Frontend).
    ```
 
 3. **Acessar**:
-   - **Backend (API Docs)**: [http://localhost:8015/docs](http://localhost:8015/docs)
+   - **Backend (API Docs)**: [http://localhost:8015/docs](http://localhost:8015/docs) (Internamente o container roda na porta 8015, mas no modo manual roda na 8000)
    - **Frontend**: [http://localhost:8016](http://localhost:8016)
+
+> **Nota:** As rotas da API agora ficam sob o prefixo `/api` (ex: `/api/vagas`).
 
 > **Nota:** O frontend no Docker roda via `vite preview`. Para desenvolvimento com hot-reload, use a opção manual abaixo para o frontend.
 
@@ -73,10 +75,10 @@ pip install -r requirements.txt
 # Renomeie o .env.example para .env e ajuste as configurações se necessário
 
 # Rodar o servidor
-uvicorn app.main:app --host 0.0.0.0 --port 8015 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-Acesse: [http://localhost:8015/docs](http://localhost:8015/docs)
+Acesse: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 #### 2. Frontend
 
@@ -85,6 +87,13 @@ Certifique-se de ter o Node.js instalado.
 ```bash
 cd frontend
 npm install
+
+# Configure as variáveis de ambiente (Opcional)
+# Crie um arquivo .env na pasta frontend com o seguinte conteúdo padrão:
+# VITE_PORT=8016
+# VITE_HOST=true
+# VITE_API_URL=http://127.0.0.1:8000
+# VITE_ALLOWED_HOSTS=jobtracker.conekta.tech
 
 # Rodar modo de desenvolvimento
 npm run dev
@@ -106,9 +115,9 @@ Para que o monitoramento de e-mails funcione, você precisa importar o workflow 
    - **Gmail OAuth2**: Configure suas credenciais do Google Cloud para permitir leitura de e-mails.
    - **Google Gemini / Groq API**: Adicione sua chave de API para o modelo de IA escolhido.
 4. **Ajustar IPs**:
-   - O workflow faz chamadas para o backend (`http://YOUR_SERVER_IP:8000/...`).
+   - O workflow faz chamadas para o backend (`http://YOUR_SERVER_IP:8000/api/...`).
    - Se estiver rodando o n8n em Docker e o backend no host, use `host.docker.internal` ou o IP da sua máquina local (ex: `192.168.1.X`).
-   - Atualize a porta se necessário (padrão do docker compose é `8015`).
+   - Atualize a porta se necessário (padrão manual é `8000`).
 
 ## 📁 Estrutura do Projeto
 
