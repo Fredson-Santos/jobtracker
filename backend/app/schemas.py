@@ -3,6 +3,8 @@ from typing import Optional
 import uuid as uuid_pkg
 
 class CreateVaga(BaseModel):
+    model_config = {"from_attributes": True}
+
     id: uuid_pkg.UUID
     empresa: str
     cargo: Optional[str] = None
@@ -13,6 +15,7 @@ class CreateVaga(BaseModel):
     ultima_atualizacao: str
 
 class UpdateVaga(BaseModel):
+
     empresa: Optional[str] = None
     cargo: Optional[str] = None
     plataforma: Optional[str] = None

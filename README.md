@@ -101,6 +101,12 @@ npm run dev
 
 Acesse: [http://localhost:5173](http://localhost:5173) (ou a porta indicada no terminal)
 
+> **Troubleshooting (Erro ECONNREFUSED 127.0.0.1:8015):**
+> Se você ver um erro de conexão recusada na porta 8015 ao rodar manualmente, é provável que a variável de ambiente `VITE_API_URL` esteja definida (talvez pelo Docker) apontando para a porta 8015.
+> Para corrigir em modo manual (backend na 8000), certifique-se de que `VITE_API_URL` não está definida ou aponte explicitamente para `http://127.0.0.1:8000`.
+> No PowerShell: `Remove-Item Env:\VITE_API_URL`
+> No Bash: `unset VITE_API_URL`
+
 ---
 
 ## 🤖 Configurando a Automação (n8n)
