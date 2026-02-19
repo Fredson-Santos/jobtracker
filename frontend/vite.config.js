@@ -6,8 +6,8 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/vagas': 'http://localhost:8000',
-      '/alertas': 'http://localhost:8000',
+      '/vagas': 'http://localhost:8015',
+      '/alertas': 'http://localhost:8015',
     },
   },
 })

@@ -11,7 +11,7 @@ function App() {
         position="top-right"
         toastOptions={{
           duration: 3000,
-          style: { background: '#1e1e2e', color: '#cdd6f4', border: '1px solid #313244' },
+          className: '!bg-white dark:!bg-gray-800 !text-gray-900 dark:!text-white !border !border-gray-200 dark:!border-gray-700 !shadow-lg !rounded-xl !text-sm',
         }}
       />
       <Routes>

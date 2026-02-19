@@ -1,14 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import {
-  HiOutlineBriefcase,
-  HiOutlineClock,
-  HiOutlineCheckCircle,
-  HiOutlineExclamation,
-  HiOutlineLightningBolt,
-} from 'react-icons/hi'
 import { fetchVagas } from '../api/vagasApi'
 import StatusBadge from '../components/StatusBadge'
+import VagaCard from '../components/VagaCard'
 
 export default function Dashboard() {
   const [vagas, setVagas] = useState([])
@@ -34,8 +28,7 @@ export default function Dashboard() {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const target = new Date(dateStr + 'T00:00:00')
-    const diff = Math.ceil((target - today) / (1000 * 60 * 60 * 24))
-    return diff
+    return Math.ceil((target - today) / (1000 * 60 * 60 * 24))
   }
 
   const total = vagas.length
@@ -50,72 +43,75 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="loading">
+      <div className="flex items-center justify-center py-20 text-gray-400 dark:text-gray-500 gap-3">
         <div className="spinner" />
         Carregando...
       </div>
     )
   }
 
+  const statCards = [
+    { icon: 'work_outline', label: 'Total de Vagas', value: total, color: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' },
+    { icon: 'schedule', label: 'Inscritos', value: inscritos, color: 'bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400' },
+    { icon: 'bolt', label: 'Teste Pendente', value: testePendente, color: 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400' },
+    { icon: 'check_circle', label: 'Entrevistas', value: entrevistas, color: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400' },
+  ]
+
   return (
-    <>
-      <div className="page-header">
+    <div className="space-y-8">
+      {/* Page Header */}
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h2>Dashboard</h2>
-          <p>Visão geral das suas candidaturas</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Visão geral das suas candidaturas</p>
         </div>
-        <Link to="/vagas" className="btn btn-primary">
-          <HiOutlineBriefcase /> Ver Vagas
+        <Link
+          to="/vagas"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm no-underline"
+        >
+          <span className="material-icons-round text-lg">work_outline</span>
+          Ver Vagas
         </Link>
       </div>
 
-      {/* Stats */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon blue"><HiOutlineBriefcase size={22} /></div>
-          <div className="stat-info">
-            <h3>{total}</h3>
-            <p>Total de Vagas</p>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {statCards.map((s) => (
+          <div
+            key={s.label}
+            className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-5 flex items-center gap-4 hover:shadow-md transition-shadow"
+          >
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${s.color}`}>
+              <span className="material-icons-round text-2xl">{s.icon}</span>
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white leading-none">{s.value}</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{s.label}</p>
+            </div>
           </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon teal"><HiOutlineClock size={22} /></div>
-          <div className="stat-info">
-            <h3>{inscritos}</h3>
-            <p>Inscritos</p>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon yellow"><HiOutlineLightningBolt size={22} /></div>
-          <div className="stat-info">
-            <h3>{testePendente}</h3>
-            <p>Teste Pendente</p>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon mauve"><HiOutlineCheckCircle size={22} /></div>
-          <div className="stat-info">
-            <h3>{entrevistas}</h3>
-            <p>Entrevistas</p>
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Prazos Urgentes */}
       {urgentes.length > 0 && (
-        <div className="urgency-section">
-          <h3>
-            <HiOutlineExclamation style={{ color: 'var(--accent-red)' }} />
+        <div>
+          <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+            <span className="material-icons-round text-red-500 text-xl">warning</span>
             Prazos Próximos
           </h3>
-          <div className="urgency-cards">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {urgentes.map((v) => (
-              <div key={v.id} className="urgency-card">
-                <div className="uc-info">
-                  <h4>{v.empresa}</h4>
-                  <p>{v.plataforma} &middot; <StatusBadge status={v.status} /></p>
+              <div
+                key={v.id}
+                className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl px-5 py-4 flex items-center justify-between hover:border-red-300 dark:hover:border-red-700 transition-colors"
+              >
+                <div className="min-w-0">
+                  <h4 className="font-semibold text-gray-900 dark:text-white text-sm truncate">{v.empresa}</h4>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1.5 mt-0.5">
+                    {v.plataforma} · <StatusBadge status={v.status} />
+                  </p>
                 </div>
-                <div className="uc-days">
+                <div className="text-2xl font-bold text-red-500 dark:text-red-400 ml-4 shrink-0">
                   {v.dias === 0 ? 'Hoje!' : v.dias === 1 ? '1 dia' : `${v.dias}d`}
                 </div>
               </div>
@@ -124,55 +120,28 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Vagas Recentes em Cards */}
+      {/* Vagas Recentes */}
       {vagas.length > 0 ? (
-        <>
-          <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px' }}>Vagas Recentes</h3>
-          <div className="vaga-cards-grid">
-            {vagas.slice(0, 6).map((v) => {
-              const dias = getDaysUntil(v.data_limite)
-              let prazoLabel = ''
-              let prazoClass = ''
-              if (dias !== null) {
-                if (dias < 0) { prazoLabel = 'Expirado'; prazoClass = 'prazo-urgente' }
-                else if (dias === 0) { prazoLabel = 'Hoje!'; prazoClass = 'prazo-urgente' }
-                else if (dias <= 3) { prazoLabel = `${dias}d`; prazoClass = 'prazo-urgente' }
-                else if (dias <= 7) { prazoLabel = `${dias}d`; prazoClass = 'prazo-alerta' }
-                else { prazoLabel = `${dias}d`; prazoClass = 'prazo-ok' }
-              }
-
-              return (
-                <div key={v.id} className="vaga-card">
-                  <div className="vaga-card__header">
-                    <div className="vaga-card__plataforma">
-                      <span>{v.plataforma}</span>
-                    </div>
-                    <StatusBadge status={v.status} />
-                  </div>
-                  <div className="vaga-card__body">
-                    <h3 className="vaga-card__empresa">{v.empresa}</h3>
-                    {v.cargo && <p className="vaga-card__cargo">{v.cargo}</p>}
-                  </div>
-                  {v.data_limite && (
-                    <div className="vaga-card__meta">
-                      <div className="vaga-card__meta-item">
-                        <span>{new Date(v.data_limite + 'T00:00:00').toLocaleDateString('pt-BR')}</span>
-                        {prazoLabel && <span className={`vaga-card__prazo ${prazoClass}`}>{prazoLabel}</span>}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
+        <div>
+          <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">Vagas Recentes</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {vagas.slice(0, 6).map((v) => (
+              <VagaCard
+                key={v.id}
+                vaga={v}
+                onEdit={() => {}}
+                onDelete={() => {}}
+              />
+            ))}
           </div>
-        </>
+        </div>
       ) : (
-        <div className="empty-state">
-          <div className="empty-icon">📋</div>
-          <h3>Nenhuma vaga cadastrada</h3>
-          <p>Vá para a página de vagas para começar a cadastrar.</p>
+        <div className="text-center py-16 text-gray-400 dark:text-gray-500">
+          <div className="text-5xl mb-4 opacity-50">📋</div>
+          <h3 className="text-lg text-gray-500 dark:text-gray-400 font-medium mb-2">Nenhuma vaga cadastrada</h3>
+          <p className="text-sm">Vá para a página de vagas para começar a cadastrar.</p>
         </div>
       )}
-    </>
+    </div>
   )
 }

@@ -1,17 +1,8 @@
 import { useState, useEffect } from 'react'
-import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash, HiOutlineExternalLink, HiOutlineCalendar, HiOutlineOfficeBuilding } from 'react-icons/hi'
 import toast from 'react-hot-toast'
 import { fetchVagas, createVaga, updateVaga, deleteVaga } from '../api/vagasApi'
-import StatusBadge from '../components/StatusBadge'
+import VagaCard from '../components/VagaCard'
 import VagaModal from '../components/VagaModal'
-
-const STATUS_PROGRESS = {
-  'inscrito': { step: 1, total: 5 },
-  'teste pendente': { step: 2, total: 5 },
-  'entrevista': { step: 3, total: 5 },
-  'feedback': { step: 4, total: 5 },
-  'rejeitado': { step: 0, total: 5 },
-}
 
 export default function Vagas() {
   const [vagas, setVagas] = useState([])
@@ -84,19 +75,6 @@ export default function Vagas() {
     setEditingVaga(null)
   }
 
-  function getDaysUntil(dateStr) {
-    if (!dateStr) return null
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const target = new Date(dateStr + 'T00:00:00')
-    return Math.ceil((target - today) / (1000 * 60 * 60 * 24))
-  }
-
-  function getProgressInfo(status) {
-    const key = (status || '').toLowerCase()
-    return STATUS_PROGRESS[key] || { step: 1, total: 5 }
-  }
-
   const STATUS_OPTIONS = ['Todos', 'Inscrito', 'Teste Pendente', 'Entrevista', 'Feedback', 'Rejeitado']
 
   const filteredVagas =
@@ -106,7 +84,7 @@ export default function Vagas() {
 
   if (loading) {
     return (
-      <div className="loading">
+      <div className="flex items-center justify-center py-20 text-gray-400 dark:text-gray-500 gap-3">
         <div className="spinner" />
         Carregando...
       </div>
@@ -114,24 +92,35 @@ export default function Vagas() {
   }
 
   return (
-    <>
-      <div className="page-header">
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h2>Vagas</h2>
-          <p>{vagas.length} candidatura{vagas.length !== 1 ? 's' : ''} cadastrada{vagas.length !== 1 ? 's' : ''}</p>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Vagas</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {vagas.length} candidatura{vagas.length !== 1 ? 's' : ''} cadastrada{vagas.length !== 1 ? 's' : ''}
+          </p>
         </div>
-        <button className="btn btn-primary" onClick={openCreate}>
-          <HiOutlinePlus /> Nova Vaga
+        <button
+          onClick={openCreate}
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm"
+        >
+          <span className="material-icons-round text-lg">add</span>
+          Nova Vaga
         </button>
       </div>
 
-      {/* Filtros */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
+      {/* Filter pills */}
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
         {STATUS_OPTIONS.map((s) => (
           <button
             key={s}
-            className={`btn btn-sm ${filterStatus === s ? 'btn-primary' : 'btn-ghost'}`}
             onClick={() => setFilterStatus(s)}
+            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+              filterStatus === s
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+            }`}
           >
             {s}
           </button>
@@ -140,93 +129,21 @@ export default function Vagas() {
 
       {/* Cards Grid */}
       {filteredVagas.length > 0 ? (
-        <div className="vaga-cards-grid">
-          {filteredVagas.map((v) => {
-            const dias = getDaysUntil(v.data_limite)
-            const progress = getProgressInfo(v.status)
-            const isRejected = (v.status || '').toLowerCase() === 'rejeitado'
-
-            let prazoLabel = ''
-            let prazoClass = ''
-            if (dias !== null) {
-              if (dias < 0) { prazoLabel = 'Expirado'; prazoClass = 'prazo-urgente' }
-              else if (dias === 0) { prazoLabel = 'Hoje!'; prazoClass = 'prazo-urgente' }
-              else if (dias <= 3) { prazoLabel = `${dias}d restante${dias > 1 ? 's' : ''}`; prazoClass = 'prazo-urgente' }
-              else if (dias <= 7) { prazoLabel = `${dias}d restantes`; prazoClass = 'prazo-alerta' }
-              else { prazoLabel = `${dias}d restantes`; prazoClass = 'prazo-ok' }
-            }
-
-            return (
-              <div key={v.id} className={`vaga-card ${isRejected ? 'vaga-card--rejected' : ''}`}>
-                {/* Header: plataforma */}
-                <div className="vaga-card__header">
-                  <div className="vaga-card__plataforma">
-                    <HiOutlineOfficeBuilding className="vaga-card__plat-icon" />
-                    <span>{v.plataforma}</span>
-                  </div>
-                  <StatusBadge status={v.status} />
-                </div>
-
-                {/* Empresa e Cargo */}
-                <div className="vaga-card__body">
-                  <h3 className="vaga-card__empresa">{v.empresa}</h3>
-                  {v.cargo && <p className="vaga-card__cargo">{v.cargo}</p>}
-                </div>
-
-                {/* Info: data limite */}
-                <div className="vaga-card__meta">
-                  {v.data_limite && (
-                    <div className="vaga-card__meta-item">
-                      <HiOutlineCalendar />
-                      <span>
-                        {new Date(v.data_limite + 'T00:00:00').toLocaleDateString('pt-BR')}
-                      </span>
-                      {prazoLabel && (
-                        <span className={`vaga-card__prazo ${prazoClass}`}>{prazoLabel}</span>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Progress bar */}
-                <div className="vaga-card__progress">
-                  <div className="vaga-card__progress-label">
-                    <span>Seu Progresso</span>
-                    <span>{isRejected ? '—' : `${progress.step}/${progress.total}`}</span>
-                  </div>
-                  <div className="vaga-card__progress-bar">
-                    <div
-                      className={`vaga-card__progress-fill ${isRejected ? 'rejected' : ''}`}
-                      style={{ width: isRejected ? '100%' : `${(progress.step / progress.total) * 100}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="vaga-card__actions">
-                  <button className="btn-card-text danger" onClick={() => handleDelete(v.id)}>
-                    <HiOutlineTrash /> Excluir
-                  </button>
-                  <div className="vaga-card__actions-right">
-                    {v.link && (
-                      <a href={v.link} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-ghost">
-                        <HiOutlineExternalLink /> Link
-                      </a>
-                    )}
-                    <button className="btn btn-sm btn-primary" onClick={() => openEdit(v)}>
-                      <HiOutlinePencil /> Editar
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredVagas.map((v) => (
+            <VagaCard
+              key={v.id}
+              vaga={v}
+              onEdit={openEdit}
+              onDelete={handleDelete}
+            />
+          ))}
         </div>
       ) : (
-        <div className="empty-state">
-          <div className="empty-icon">📋</div>
-          <h3>Nenhuma vaga encontrada</h3>
-          <p>
+        <div className="text-center py-16 text-gray-400 dark:text-gray-500">
+          <div className="text-5xl mb-4 opacity-50">📋</div>
+          <h3 className="text-lg text-gray-500 dark:text-gray-400 font-medium mb-2">Nenhuma vaga encontrada</h3>
+          <p className="text-sm">
             {filterStatus !== 'Todos'
               ? 'Tente mudar o filtro ou cadastre uma nova vaga.'
               : 'Clique em "Nova Vaga" para começar.'}
@@ -234,6 +151,7 @@ export default function Vagas() {
         </div>
       )}
 
+      {/* Modal */}
       {showModal && (
         <VagaModal
           vaga={editingVaga}
@@ -241,6 +159,6 @@ export default function Vagas() {
           onSave={editingVaga ? handleUpdate : handleCreate}
         />
       )}
-    </>
+    </div>
   )
 }

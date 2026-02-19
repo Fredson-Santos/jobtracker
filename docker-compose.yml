@@ -1,0 +1,23 @@
+services:
+  backend:
+    build: ./backend
+    container_name: jobtracker-backend
+    ports:
+      - "8015:8015"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - backend-data:/app/data
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: jobtracker-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  backend-data:
