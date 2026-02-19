@@ -13,7 +13,14 @@ export default defineConfig(({ mode }) => {
       host: env.VITE_HOST === 'true' || env.VITE_HOST,
       proxy: {
         '/api': {
-          target: env.VITE_API_URL || 'http://127.0.0.1:8000',
+          target: (() => {
+            const target = env.VITE_API_URL || 'http://127.0.0.1:8000';
+            console.log('--- VITE PROXY CONFIG ---');
+            console.log('VITE_API_URL env var:', env.VITE_API_URL);
+            console.log('Proxy target:', target);
+            console.log('-------------------------');
+            return target;
+          })(),
           changeOrigin: true,
           secure: false,
         }
@@ -23,7 +30,7 @@ export default defineConfig(({ mode }) => {
       port: parseInt(env.VITE_PORT) || 8016,
       strictPort: true,
       host: env.VITE_HOST === 'true' || env.VITE_HOST,
-      allowedHosts: ['jobtracker.conekta.tech', 'localhost', '127.0.0.1'],
+      allowedHosts: ['jobtracker.conekta.tech', 'localhost', '192.168.1.100'],
     }
   }
 })
