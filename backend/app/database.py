@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./jobtracker.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/jobtracker.db")
 
 
 connect_args = {"check_same_thread": False} if "sqlite" in DATABASE_URL else {}
