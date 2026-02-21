@@ -1,0 +1,353 @@
+{
+  "name": "JobTracker - Gmail Monitor",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {
+          "readStatus": "both"
+        }
+      },
+      "id": "fbd36aad-275e-465c-bef4-11df6b2f155d",
+      "name": "Gmail Trigger",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        0
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "bZDtyjRMCYt0pMN9",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.Subject }}\n\n{{ $json.snippet }}\n\n{{ $json.internalDate }}\n\n{{ $json.From }}",
+        "options": {
+          "systemMessage": "=prompt jobtracker \n\nContexto:\nMonitoramento automatizado de candidaturas de emprego.\n\nFunção do Agente:\nAtuar como analisador de e-mails relacionados a processos seletivos.\n\nInstruções Obrigatórias:\n\nAntes de qualquer análise, você DEVE obrigatoriamente executar a tool HTTP Request, sem enviar parâmetros, para obter a lista atualizada de empresas monitoradas.\n\nApós receber a lista de empresas monitoradas:\n\nVerifique se o e-mail recebido menciona explicitamente alguma das empresas retornadas.\n\nO e-mail somente será considerado relevante se estiver claramente relacionado a uma das empresas monitoradas.\n\nCaso o e-mail não esteja relacionado a nenhuma empresa monitorada, retorne exatamente:\n\nemail não relevante\n\nCaso o e-mail seja relevante, extraia as seguintes informações (quando disponíveis):\n\nempresa\n\nnovo_status (ex: entrevista agendada, reprovação, aprovação, teste técnico, etc.)\n\ncargo\n\nremetente\n\nassunto\n\nresumo (breve descrição do conteúdo)\n\ndata_evento (data mencionada no e-mail relacionada ao processo)\n\nSe relevante, retorne exclusivamente o seguinte JSON no formato abaixo:\n\n{\n  \"empresa\": \"\",\n  \"novo_status\": \"\",\n  \"cargo\": \"\",\n  \"remetente\": \"\",\n  \"assunto\": \"\",\n  \"resumo\": \"\",\n  \"data_evento\": \"\"\n}\n\nRegras adicionais:\n\nNão invente informações.\n\nNão retorne texto fora do formato especificado.\n\nNunca pule a etapa de chamada da tool HTTP Request.\n\nA validação da relevância depende obrigatoriamente da lista retornada pela tool."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        368,
+        0
+      ],
+      "id": "6936db78-e470-4671-957e-85370c574a28",
+      "name": "AI Agent1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1360,
+        -112
+      ],
+      "id": "1c71acf8-a55a-4053-bf8c-ef86d3e1e787",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "url": "http://192.168.18.100:8015/api/alertas/empresas-monitoradas",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        512,
+        208
+      ],
+      "id": "93bf960e-fa9b-4446-b657-c3ce638399a2",
+      "name": "BuscaEmpresas"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.18.100:8015/api/alertas/webhook",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "empresa",
+              "value": "={{ $json.empresa }}"
+            },
+            {
+              "name": "novo_status",
+              "value": "={{ $json.novo_status }}"
+            },
+            {
+              "name": "cargo",
+              "value": "={{ $json.cargo }}"
+            },
+            {
+              "name": "remetente",
+              "value": "={{ $json.remetente }}"
+            },
+            {
+              "name": "assunto",
+              "value": "={{ $json.assunto }}"
+            },
+            {
+              "name": "resumo",
+              "value": "={{ $json.resumo }}"
+            },
+            {
+              "name": "data_evento",
+              "value": "={{ $json.data_evento }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1040,
+        -112
+      ],
+      "id": "99d1e11d-ba86-42f5-8ce8-65051b7b5c09",
+      "name": "Atualiza Status"
+    },
+    {
+      "parameters": {
+        "chatId": "1252121008",
+        "text": "=🚀 *Nova atualização da empresa {{ $json.detalhes[0].empresa }}!*  \n\n📍 *Vaga:* {{ $json.email.assunto }} \n\n🔄 *Status:* {{ $json.detalhes[0].status_novo }}\n\n📝 *Resumo do e-mail:* {{ $json.email.resumo }}  \n\n📅 *Data do processamento:* 19/02/26",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1200,
+        -112
+      ],
+      "id": "2feb88bd-487e-4642-8875-3b7d40d727df",
+      "name": "Send a text message",
+      "webhookId": "2c022707-63f3-49f2-8b0d-61e415d60075",
+      "credentials": {
+        "telegramApi": {
+          "id": "HXZZL66atDBwIMGJ",
+          "name": "JobTrackerr"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f3157506-c03e-43cc-a6c4-76f4a8516be6",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "email não relevante",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        688,
+        0
+      ],
+      "id": "30f61117-493c-41f4-9d9b-707325493853",
+      "name": "Email e relevante?"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        368,
+        208
+      ],
+      "id": "731e662f-f4f6-4f8e-a0bd-43ac7a22e03b",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "VT9ko9ZUlODj7gpS",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": ";// Supondo que o JSON venha dentro de uma propriedade chamada 'output'\nconst rawData = $input.first().json.output;\n\n// Transforma a string JSON em um objeto real\nconst parsedData = JSON.parse(rawData);\n\n// Retorna os dados separados\nreturn {\n  empresa: parsedData.empresa,\n  novo_status: parsedData.novo_status,\n  cargo: parsedData.cargo,\n  remetente: parsedData.remetente,\n  assunto: parsedData.assunto,\n  resumo: parsedData.resumo,\n  data_evento: parsedData.data_evento\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        -112
+      ],
+      "id": "0ad8dc27-6b7b-4b3d-941d-6808d7f1a1d6",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        880,
+        96
+      ],
+      "id": "299686e4-86fb-4eb1-9a1d-a6b5055de7d3",
+      "name": "No Operation, do nothing1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Email e relevante?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BuscaEmpresas": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualiza Status": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email e relevante?": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Atualiza Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "bc830437-b40a-4da2-9c32-462363a21c5f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3dffa96cf2c9a89565214c820c55941c2b875306a6640d65860fc06a1ba9f762"
+  },
+  "id": "-PJUCoJFfkt8D9ljTxnVm",
+  "tags": []
+}
