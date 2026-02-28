@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional, List
+from datetime import datetime
 import uuid as uuid_pkg
 
 class CreateVaga(BaseModel):
@@ -13,6 +14,8 @@ class CreateVaga(BaseModel):
     data_limite: Optional[str] = None
     status: str
     ultima_atualizacao: str
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
 class UpdateVaga(BaseModel):
 
@@ -23,7 +26,6 @@ class UpdateVaga(BaseModel):
     data_limite: Optional[str] = None
     status: Optional[str] = None
     ultima_atualizacao: Optional[str] = None
-
 
 class WebhookPayload(BaseModel):
     """Payload enviado pelo n8n AI Agent após analisar um e-mail."""

@@ -47,9 +47,8 @@ export default function VagaCard({ vaga, onEdit, onDelete }) {
 
   return (
     <div
-      className={`bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-200 flex flex-col gap-4 ${
-        isRejected ? 'opacity-60' : ''
-      }`}
+      className={`bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-200 flex flex-col gap-4 ${isRejected ? 'opacity-60' : ''
+        }`}
     >
       {/* Header: avatar + info + badge */}
       <div className="flex items-center gap-3">
@@ -63,7 +62,7 @@ export default function VagaCard({ vaga, onEdit, onDelete }) {
             {vaga.empresa}
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-            {vaga.cargo || vaga.plataforma}
+            {vaga.plataforma}
           </p>
         </div>
         <StatusBadge status={vaga.status} />
@@ -84,10 +83,10 @@ export default function VagaCard({ vaga, onEdit, onDelete }) {
         </div>
       )}
 
-      {/* Plataforma tag */}
+      {/* Cargo tag */}
       <div className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
-        <span className="material-icons-round" style={{ fontSize: 14 }}>business</span>
-        {vaga.plataforma}
+        <span className="material-icons-round" style={{ fontSize: 14 }}>work_outline</span>
+        {vaga.cargo || 'Cargo não especificado'}
       </div>
 
       {/* Actions */}

@@ -4,4 +4,5 @@ sqlmodel
 pydantic-settings
 python-dotenv
 httpx
+alembic
 # psycopg2-binary # Uncomment for PostgreSQL production
