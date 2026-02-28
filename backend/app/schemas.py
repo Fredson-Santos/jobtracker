@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 import uuid as uuid_pkg
 
 class CreateVaga(BaseModel):
@@ -34,3 +34,10 @@ class WebhookPayload(BaseModel):
     assunto: Optional[str] = None
     resumo: Optional[str] = None
     data_evento: Optional[str] = None
+
+class EmpresasMonitoradasResponse(BaseModel):
+    model_config = {"from_attributes": True}
+    empresa: str
+    plataforma: str
+    cargo: str
+

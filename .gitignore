@@ -89,3 +89,6 @@ dmypy.json
 
 # Ruff
 .ruff_cache/
+
+tasks/
+feat-implementar.txt

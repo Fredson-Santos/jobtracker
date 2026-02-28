@@ -77,11 +77,7 @@ def receive_webhook(
     }
 
 
-@router.get("/empresas-monitoradas", response_model=List[str])
-def get_empresas_monitoradas(session: Session = Depends(get_session)):
-    """
-    Retorna lista de empresas cadastradas.
-    Usado pelo AI Agent do n8n para verificar se o e-mail
-    é de uma empresa/plataforma que estamos monitorando.
-    """
-    return crud.get_unique_companies(session)
+@router.get("/empresas-monitoradas", response_model=List[schemas.EmpresasMonitoradasResponse])
+def read_vagas(session: Session = Depends(get_session)):
+    vagas = crud.get_vagas(session)
+    return vagas
