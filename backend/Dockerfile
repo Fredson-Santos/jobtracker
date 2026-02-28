@@ -14,6 +14,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copiar código da aplicação
 COPY . .
 
+# Dar permissão ao entrypoint
+RUN chmod +x entrypoint.sh
+
 EXPOSE 8015
 
+ENTRYPOINT ["./entrypoint.sh"]
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8015"]
