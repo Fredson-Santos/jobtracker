@@ -1,0 +1,96 @@
+import React from 'react';
+import { Briefcase, Calendar, ChevronRight, ExternalLink } from 'lucide-react';
+
+/**
+ * Componente de Card de Prazo
+ * Design minimalista sem ícone de empresa, focado em tipografia e alinhamento.
+ */
+const DeadLineCard = ({ 
+  empresa = "Empresa Exemplo", 
+  vaga = "Cargo da Vaga", 
+  plataforma = "Gupy",
+  status = "Inscrito", 
+  prazo = "Hoje" 
+}) => {
+  const isUrgent = prazo.toLowerCase() === "hoje";
+  
+  return (
+    <div className="group relative bg-white p-7 rounded-[32px] border border-gray-100 shadow-lg hover:shadow-2xl transition-all duration-300 max-w-md w-full overflow-hidden cursor-pointer">
+      {/* Indicador de Urgência Lateral */}
+      <div className={`absolute left-0 top-0 bottom-0 w-1.5 transition-colors ${
+        isUrgent ? 'bg-red-500' : 'bg-blue-500'
+      }`} />
+      
+      <div className="flex justify-between items-start">
+        <div className="flex-1 space-y-4">
+          
+          {/* Bloco da Empresa e Plataforma */}
+          <div className="flex flex-col">
+            <h2 className="text-2xl font-black text-gray-900 group-hover:text-blue-600 transition-colors tracking-tight">
+              {empresa}
+            </h2>
+            <div className="flex items-center gap-1.5 text-xs font-bold text-gray-400 uppercase tracking-[0.15em] mt-0.5">
+              <ExternalLink size={12} strokeWidth={3} className="text-gray-300" />
+              <span>{plataforma}</span>
+            </div>
+          </div>
+
+          {/* Informação do Cargo */}
+          <div className="flex items-center gap-2 text-sm font-semibold text-gray-500">
+            <Briefcase size={16} className="text-gray-300" strokeWidth={2} />
+            <h3>{vaga}</h3>
+          </div>
+          
+          {/* Status e Prazo */}
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black bg-blue-50 text-blue-600 border border-blue-100 uppercase tracking-widest">
+              {status}
+            </span>
+            <div className="flex items-center gap-1.5 text-xs font-bold text-gray-400">
+              <Calendar size={14} className="text-gray-300" />
+              <span className="uppercase tracking-tighter">Expira:</span>
+              <span className={isUrgent ? "text-red-500 font-black" : "text-gray-600"}>
+                {isUrgent ? "HOJE" : prazo}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Badge de Urgência e Botão de Ação */}
+        <div className="flex flex-col items-end gap-10 ml-4">
+          <div className={`px-4 py-1.5 rounded-xl font-black text-xl shadow-sm transform -rotate-2 transition-transform group-hover:rotate-0 ${
+            isUrgent 
+              ? 'bg-red-50 text-red-600 border border-red-100 ring-4 ring-red-50/50' 
+              : 'bg-gray-50 text-gray-600'
+          }`}>
+            {prazo}!
+          </div>
+          
+          <div className="p-2.5 bg-gray-50 rounded-full text-gray-400 group-hover:bg-blue-600 group-hover:text-white group-hover:scale-110 transition-all duration-300 shadow-inner">
+            <ChevronRight size={22} strokeWidth={3} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default function App() {
+  return (
+    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-6 font-sans">
+      <div className="w-full max-w-md">
+        <DeadLineCard 
+          empresa="Google" 
+          vaga="Senior Frontend Engineer" 
+          plataforma="Gupy"
+          status="Em Análise"
+          prazo="Hoje"
+        />
+        
+        <p className="mt-8 text-center text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em]">
+          Design Purista • Sem Ícone de Empresa
+        </p>
+      </div>
+    </div>
+  );
+}

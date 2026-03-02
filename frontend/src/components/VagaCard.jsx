@@ -85,7 +85,7 @@ export default function VagaCard({ vaga, onEdit, onDelete }) {
 
   return (
     <div
-      className={`w-full bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-gray-700 shadow-md dark:shadow-xl flex flex-col overflow-hidden transition-all hover:border-gray-300 dark:hover:border-gray-500 opacity-100 ${isRejected ? 'opacity-60 grayscale-[30%]' : ''
+      className={`w-full bg-white dark:bg-[#1e293b] rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-gray-300 dark:hover:border-gray-500 ${isRejected ? 'opacity-60 grayscale-[30%]' : ''
         }`}
     >
       {/* Corpo do Card (Informações principais) */}
