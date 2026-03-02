@@ -157,7 +157,8 @@ export default function Dashboard() {
 
                       {/* Status + prazo */}
                       <div className="flex items-center gap-2 flex-wrap">
-                        <StatusBadge status={v.status} />
+                        <StatusBadge status={v.status} maxWidth="none" />
+
                         <div className="flex items-center gap-1 text-[10px] font-bold text-gray-400 dark:text-gray-500">
                           <span className="material-icons-round text-[12px] text-gray-300">calendar_today</span>
                           <span className="uppercase tracking-tight">Expira:</span>

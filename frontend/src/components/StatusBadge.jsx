@@ -23,7 +23,8 @@ const STATUS_STYLES = {
   },
 }
 
-export default function StatusBadge({ status }) {
+export default function StatusBadge({ status, maxWidth = '130px' }) {
+
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
   const key = (status || '').toLowerCase()
@@ -52,7 +53,8 @@ export default function StatusBadge({ status }) {
   }
 
   return (
-    <span ref={ref} className="relative inline-block max-w-[130px] align-middle">
+    <span ref={ref} className="relative inline-block align-middle" style={{ maxWidth }}>
+
       <span
         className={`block truncate px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide uppercase cursor-pointer select-none ${info.cls}`}
         title={info.label}
