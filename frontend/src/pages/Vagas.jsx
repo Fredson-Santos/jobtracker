@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import toast from 'react-hot-toast'
+
 import { fetchVagas, createVaga, updateVaga, deleteVaga } from '../api/vagasApi'
 import VagaCard from '../components/VagaCard'
 import VagaModal from '../components/VagaModal'
@@ -11,9 +13,23 @@ export default function Vagas() {
   const [editingVaga, setEditingVaga] = useState(null)
   const [filterStatus, setFilterStatus] = useState('Todos')
 
+  const location = useLocation()
+
   useEffect(() => {
     loadVagas()
   }, [])
+
+  useEffect(() => {
+    if (vagas.length > 0 && location.state?.editVagaId) {
+      const vagaToEdit = vagas.find((v) => v.id === location.state.editVagaId)
+      if (vagaToEdit) {
+        openEdit(vagaToEdit)
+        // Limpa o estado para não reabrir ao navegar novamente
+        window.history.replaceState({}, document.title)
+      }
+    }
+  }, [vagas, location])
+
 
   async function loadVagas() {
     try {
@@ -116,11 +132,10 @@ export default function Vagas() {
           <button
             key={s}
             onClick={() => setFilterStatus(s)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-              filterStatus === s
+            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filterStatus === s
                 ? 'bg-blue-600 text-white shadow-sm'
                 : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-            }`}
+              }`}
           >
             {s}
           </button>

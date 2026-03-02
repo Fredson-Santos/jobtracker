@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import StatusBadge from './StatusBadge'
+import TruncatedText from './TruncatedText'
+
 
 
 const AVATAR_COLORS = [
@@ -40,6 +42,22 @@ function getPrazoInfo(dias) {
   return { label: `${dias}d`, cls: 'text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20' }
 }
 
+function formatRelativeDate(dateStr) {
+  if (!dateStr) return null
+  const date = new Date(dateStr)
+  const today = new Date()
+  const yesterday = new Date()
+  yesterday.setDate(yesterday.getDate() - 1)
+
+  const isToday = date.toDateString() === today.toDateString()
+  const isYesterday = date.toDateString() === yesterday.toDateString()
+
+  if (isToday) return 'Hoje'
+  if (isYesterday) return 'Ontem'
+  return date.toLocaleDateString('pt-BR')
+}
+
+
 export default function VagaCard({ vaga, onEdit, onDelete }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef(null)
@@ -76,7 +94,7 @@ export default function VagaCard({ vaga, onEdit, onDelete }) {
         {/* Cabeçalho: Logo, Textos e Estado */}
         <div className="flex justify-between items-start gap-3">
 
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
             {/* Avatar */}
             <div
               className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg shrink-0 shadow-inner ${avatarColor}`}
@@ -84,14 +102,16 @@ export default function VagaCard({ vaga, onEdit, onDelete }) {
               {initials}
             </div>
 
-            {/* Textos */}
-            <div className="min-w-0 flex flex-col">
-              <h3 className="text-gray-900 dark:text-white font-semibold text-base truncate" title={vaga.empresa}>
-                {vaga.empresa}
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400 text-sm truncate" title={vaga.plataforma}>
-                {vaga.plataforma}
-              </p>
+            {/* Textos: Empresa e Plataforma */}
+            <div className="min-w-0 flex flex-col flex-1">
+              <TruncatedText
+                text={vaga.empresa}
+                className="text-gray-900 dark:text-white font-semibold text-base"
+              />
+              <TruncatedText
+                text={vaga.plataforma}
+                className="text-gray-500 dark:text-gray-400 text-sm mt-0.5"
+              />
             </div>
           </div>
 
@@ -101,20 +121,24 @@ export default function VagaCard({ vaga, onEdit, onDelete }) {
           </div>
         </div>
 
+
         {/* Divisória interna */}
         <hr className="border-gray-200 dark:border-gray-700/50 my-4" />
 
         {/* Detalhes da Vaga */}
         <div className="flex flex-col gap-3">
           {/* Cargo */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 min-w-0">
             <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
             </svg>
-            <span className="text-gray-700 dark:text-gray-200 font-medium text-sm truncate" title={vaga.cargo || 'Cargo não especificado'}>
-              {vaga.cargo || 'Cargo não especificado'}
-            </span>
+            <TruncatedText
+              text={vaga.cargo || 'Cargo não especificado'}
+              className="text-gray-700 dark:text-gray-200 font-medium text-sm"
+            />
           </div>
+
+
 
           {/* Data Limite */}
           {vaga.data_limite && (
@@ -135,18 +159,19 @@ export default function VagaCard({ vaga, onEdit, onDelete }) {
             </div>
           )}
 
-          {/* Opcional: Mostrar Data de Criação se existir no objeto da API */}
-          {vaga.created_at && (
+          {/* Última Atualização */}
+          {(vaga.updated_at || vaga.created_at) && (
             <div className="flex items-center gap-2.5">
               <svg className="w-4 h-4 text-gray-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
               <span className="text-gray-500 dark:text-gray-400 text-xs truncate">
-                Adicionado: {new Date(vaga.created_at).toLocaleDateString('pt-BR')}
+                Última atualização: {formatRelativeDate(vaga.updated_at || vaga.created_at)}
               </span>
             </div>
           )}
         </div>
+
 
       </div>
 

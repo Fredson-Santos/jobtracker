@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { fetchVagas } from '../api/vagasApi'
+import { Link, useNavigate } from 'react-router-dom'
+import { fetchVagas, deleteVaga } from '../api/vagasApi'
+
 import StatusBadge from '../components/StatusBadge'
 import VagaCard from '../components/VagaCard'
 
 export default function Dashboard() {
   const [vagas, setVagas] = useState([])
   const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
+
 
   useEffect(() => {
     loadVagas()
@@ -22,6 +25,24 @@ export default function Dashboard() {
       setLoading(false)
     }
   }
+
+  async function handleDelete(id) {
+    if (window.confirm('Tem certeza que deseja excluir esta vaga?')) {
+      try {
+        await deleteVaga(id)
+        loadVagas()
+      } catch (error) {
+        console.error('Erro ao excluir vaga:', error)
+        alert('Erro ao excluir vaga. Tente novamente.')
+      }
+    }
+  }
+
+  function handleEdit(vaga) {
+    // Redireciona para a página de vagas passando o ID para abrir o modal de edição
+    navigate('/vagas', { state: { editVagaId: vaga.id } })
+  }
+
 
   function getDaysUntil(dateStr) {
     if (!dateStr) return null
@@ -120,21 +141,28 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Vagas Recentes */}
+      {/* Atualizações Recentes */}
       {vagas.length > 0 ? (
         <div>
-          <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3">Vagas Recentes</h3>
+          <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+            <span className="material-icons-round text-blue-500 text-xl">history</span>
+            Atualizações Recentes
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {vagas.slice(0, 6).map((v) => (
-              <VagaCard
-                key={v.id}
-                vaga={v}
-                onEdit={() => {}}
-                onDelete={() => {}}
-              />
-            ))}
+            {vagas
+              .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at))
+              .slice(0, 6)
+              .map((v) => (
+                <VagaCard
+                  key={v.id}
+                  vaga={v}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              ))}
           </div>
         </div>
+
       ) : (
         <div className="text-center py-16 text-gray-400 dark:text-gray-500">
           <div className="text-5xl mb-4 opacity-50">📋</div>

@@ -1,7 +1,18 @@
 import { useState, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
-const PLATAFORMAS = ['Gupy', 'Eureca', 'Universia', 'Outra']
+const PLATAFORMAS = [
+  'LinkedIn',
+  'Gupy',
+  'Indeed',
+  'InfoJobs',
+  'Vagas.com',
+  'Eureca',
+  'CIEE',
+  'Universia',
+  'Outra'
+]
+
 const STATUS_OPTIONS = ['Inscrito', 'Teste Pendente', 'Entrevista', 'Feedback', 'Rejeitado']
 
 export default function VagaModal({ vaga, onClose, onSave }) {

@@ -26,8 +26,12 @@ export default function StatusBadge({ status }) {
   const info = STATUS_STYLES[key] || { label: status, cls: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300' }
 
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide uppercase ${info.cls}`}>
+    <span
+      className={`inline-block max-w-[130px] truncate align-middle px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide uppercase ${info.cls}`}
+      title={info.label}
+    >
       {info.label}
     </span>
   )
 }
+
