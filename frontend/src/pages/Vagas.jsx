@@ -14,7 +14,11 @@ export default function Vagas() {
   const [editingVaga, setEditingVaga] = useState(null)
   const [filterStatus, setFilterStatus] = useState('Todos')
   const [currentPage, setCurrentPage] = useState(1)
+  const [sortKey, setSortKey] = useState('recentes')
+  const [sortOpen, setSortOpen] = useState(false)
+  const sortRef = useRef(null)
   const CARDS_PER_PAGE = 9
+
 
 
   const location = useLocation()
@@ -119,11 +123,51 @@ export default function Vagas() {
   }
 
   const STATUS_OPTIONS = ['Todos', 'Inscrito', 'Teste Pendente', 'Entrevista', 'Feedback', 'Rejeitado']
+  const SORT_OPTIONS = [
+    { key: 'recentes', label: 'Mais recentes', icon: 'schedule' },
+    { key: 'antigas', label: 'Mais antigas', icon: 'history' },
+    { key: 'empresa', label: 'Empresa (A-Z)', icon: 'sort_by_alpha' },
+    { key: 'prazo', label: 'Prazo', icon: 'event' },
+  ]
 
-  const filteredVagas =
-    filterStatus === 'Todos'
-      ? vagas
+  // Fechar dropdown de sort ao clicar fora
+  useEffect(() => {
+    function handleOutside(e) {
+      if (sortRef.current && !sortRef.current.contains(e.target)) setSortOpen(false)
+    }
+    if (sortOpen) {
+      document.addEventListener('mousedown', handleOutside)
+      document.addEventListener('touchstart', handleOutside)
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleOutside)
+      document.removeEventListener('touchstart', handleOutside)
+    }
+  }, [sortOpen])
+
+  const filteredVagas = (() => {
+    const base = filterStatus === 'Todos'
+      ? [...vagas]
       : vagas.filter((v) => v.status?.toLowerCase() === filterStatus.toLowerCase())
+
+    return base.sort((a, b) => {
+      if (sortKey === 'recentes') {
+        return new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0)
+      }
+      if (sortKey === 'antigas') {
+        return new Date(a.created_at || 0) - new Date(b.created_at || 0)
+      }
+      if (sortKey === 'empresa') {
+        return (a.empresa || '').localeCompare(b.empresa || '', 'pt-BR')
+      }
+      if (sortKey === 'prazo') {
+        const da = a.data_limite ? new Date(a.data_limite) : new Date('9999-12-31')
+        const db = b.data_limite ? new Date(b.data_limite) : new Date('9999-12-31')
+        return da - db
+      }
+      return 0
+    })
+  })()
 
   const totalPages = Math.ceil(filteredVagas.length / CARDS_PER_PAGE)
   const paginatedVagas = filteredVagas.slice(
@@ -165,20 +209,53 @@ export default function Vagas() {
         </button>
       </div>
 
-      {/* Filter pills */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-        {STATUS_OPTIONS.map((s) => (
+      {/* Filter pills + Ordenação */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide flex-1">
+          {STATUS_OPTIONS.map((s) => (
+            <button
+              key={s}
+              onClick={() => handleFilterChange(s)}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filterStatus === s
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                }`}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+
+        {/* Botão de ordenação */}
+        <div className="relative flex-shrink-0" ref={sortRef}>
           <button
-            key={s}
-            onClick={() => handleFilterChange(s)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filterStatus === s
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-              }`}
+            onClick={() => setSortOpen((o) => !o)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm font-medium transition-colors"
+            title="Ordenar"
           >
-            {s}
+            <span className="material-icons-round text-base">sort</span>
+            <span className="hidden sm:inline">{SORT_OPTIONS.find(o => o.key === sortKey)?.label ?? 'Ordenar'}</span>
           </button>
-        ))}
+
+          {sortOpen && (
+            <div className="absolute right-0 top-full mt-1.5 z-50 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden">
+              {SORT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.key}
+                  onClick={() => { setSortKey(opt.key); setCurrentPage(1); setSortOpen(false) }}
+                  className={`flex items-center gap-2.5 w-full px-4 py-2.5 text-sm text-left transition-colors ${sortKey === opt.key
+                      ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-semibold'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                >
+                  <span className="material-icons-round text-base">{opt.icon}</span>
+                  {opt.label}
+                  {sortKey === opt.key && <span className="material-icons-round text-base ml-auto">check</span>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
 
