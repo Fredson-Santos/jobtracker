@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { fetchVagas, deleteVaga } from '../api/vagasApi'
+
 
 import StatusBadge from '../components/StatusBadge'
 import VagaCard from '../components/VagaCard'
@@ -86,13 +87,14 @@ export default function Dashboard() {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h2>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Visão geral das suas candidaturas</p>
         </div>
-        <Link
-          to="/vagas"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm no-underline"
+        <button
+          onClick={() => navigate('/vagas', { state: { openNew: true } })}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors shadow-sm"
         >
-          <span className="material-icons-round text-lg">work_outline</span>
-          Ver Vagas
-        </Link>
+          <span className="material-icons-round text-lg">add</span>
+          Nova Vaga
+        </button>
+
       </div>
 
       {/* Stats Grid */}

@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+
 import toast from 'react-hot-toast'
 
 import { fetchVagas, createVaga, updateVaga, deleteVaga } from '../api/vagasApi'
@@ -12,23 +13,49 @@ export default function Vagas() {
   const [showModal, setShowModal] = useState(false)
   const [editingVaga, setEditingVaga] = useState(null)
   const [filterStatus, setFilterStatus] = useState('Todos')
+  const [currentPage, setCurrentPage] = useState(1)
+  const CARDS_PER_PAGE = 9
+
 
   const location = useLocation()
+  const navigate = useNavigate()
+  // Ref para evitar re-processar o mesmo state ao recarregar vagas
+  const handledStateRef = useRef(null)
+
 
   useEffect(() => {
     loadVagas()
   }, [])
 
+  // Abre modal de edição ao navegar do Dashboard com editVagaId
   useEffect(() => {
-    if (vagas.length > 0 && location.state?.editVagaId) {
-      const vagaToEdit = vagas.find((v) => v.id === location.state.editVagaId)
-      if (vagaToEdit) {
-        openEdit(vagaToEdit)
-        // Limpa o estado para não reabrir ao navegar novamente
-        window.history.replaceState({}, document.title)
+    const editId = location.state?.editVagaId
+    if (editId && handledStateRef.current !== editId) {
+      handledStateRef.current = editId
+      navigate('/vagas', { replace: true, state: {} })
+      // Aguarda vagas carregadas para abrir o modal
+      const tryOpen = (retry = 0) => {
+        setVagas((current) => {
+          const vagaToEdit = current.find((v) => v.id === editId)
+          if (vagaToEdit) {
+            openEdit(vagaToEdit)
+          } else if (retry < 5) {
+            setTimeout(() => tryOpen(retry + 1), 200)
+          }
+          return current
+        })
       }
+      tryOpen()
     }
-  }, [vagas, location])
+  }, [location])
+
+  // Abre modal de criação ao navegar do Dashboard com openNew
+  useEffect(() => {
+    if (location.state?.openNew) {
+      navigate('/vagas', { replace: true, state: {} })
+      openCreate()
+    }
+  }, [location])
 
 
   async function loadVagas() {
@@ -98,6 +125,18 @@ export default function Vagas() {
       ? vagas
       : vagas.filter((v) => v.status?.toLowerCase() === filterStatus.toLowerCase())
 
+  const totalPages = Math.ceil(filteredVagas.length / CARDS_PER_PAGE)
+  const paginatedVagas = filteredVagas.slice(
+    (currentPage - 1) * CARDS_PER_PAGE,
+    currentPage * CARDS_PER_PAGE
+  )
+
+  function handleFilterChange(status) {
+    setFilterStatus(status)
+    setCurrentPage(1)
+  }
+
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20 text-gray-400 dark:text-gray-500 gap-3">
@@ -131,10 +170,10 @@ export default function Vagas() {
         {STATUS_OPTIONS.map((s) => (
           <button
             key={s}
-            onClick={() => setFilterStatus(s)}
+            onClick={() => handleFilterChange(s)}
             className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filterStatus === s
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
           >
             {s}
@@ -142,10 +181,11 @@ export default function Vagas() {
         ))}
       </div>
 
+
       {/* Cards Grid */}
-      {filteredVagas.length > 0 ? (
+      {paginatedVagas.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredVagas.map((v) => (
+          {paginatedVagas.map((v) => (
             <VagaCard
               key={v.id}
               vaga={v}
@@ -163,6 +203,40 @@ export default function Vagas() {
               ? 'Tente mudar o filtro ou cadastre uma nova vaga.'
               : 'Clique em "Nova Vaga" para começar.'}
           </p>
+        </div>
+      )}
+
+      {/* Paginação */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-2">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            <span className="material-icons-round text-lg">chevron_left</span>
+          </button>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className={`w-9 h-9 flex items-center justify-center rounded-lg text-sm font-semibold transition-colors ${currentPage === page
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+            >
+              {page}
+            </button>
+          ))}
+
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            <span className="material-icons-round text-lg">chevron_right</span>
+          </button>
         </div>
       )}
 
