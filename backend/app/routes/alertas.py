@@ -77,7 +77,16 @@ def receive_webhook(
     }
 
 
-@router.get("/empresas-monitoradas", response_model=List[schemas.EmpresasMonitoradasResponse])
+@router.get("/empresas-monitoradas")
 def read_vagas(session: Session = Depends(get_session)):
     vagas = crud.get_vagas(session)
-    return vagas
+    return {
+        "empresas_monitoradas": [
+            {
+                "empresa": vaga.empresa,
+                "plataforma": vaga.plataforma,
+                "cargo": vaga.cargo
+            }
+            for vaga in vagas
+        ]
+    }
