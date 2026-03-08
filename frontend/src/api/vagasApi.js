@@ -33,4 +33,9 @@ export async function deleteVaga(id) {
   return data
 }
 
+export async function extractVagaFromLink(url) {
+  const { data } = await api.post('/api/vagas/extract', { url })
+  return data
+}
+
 export default api

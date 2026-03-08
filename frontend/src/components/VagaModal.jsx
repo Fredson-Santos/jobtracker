@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { v4 as uuidv4 } from 'uuid'
+import { extractVagaFromLink } from '../api/vagasApi'
 
 
 const PLATAFORMAS = [
@@ -41,6 +42,37 @@ export default function VagaModal({ vaga, onClose, onSave }) {
       })
     }
   }, [vaga, isEdit])
+
+  const [extracting, setExtracting] = useState(false)
+  const [extractStatus, setExtractStatus] = useState(null) // 'success' | 'error' | null
+  const [extractMsg, setExtractMsg] = useState('')
+
+  async function handleExtract() {
+    if (!form.link) return
+    setExtracting(true)
+    setExtractStatus(null)
+    try {
+      const data = await extractVagaFromLink(form.link)
+      if (data.erro) {
+        setExtractStatus('error')
+        setExtractMsg('Erro ao acessar vaga. Tente preencher manualmente.')
+        return
+      }
+      setForm((prev) => ({
+        ...prev,
+        empresa: data.empresa && data.empresa !== 'N/A' ? data.empresa : prev.empresa,
+        cargo: data.cargo && data.cargo !== 'N/A' ? data.cargo : prev.cargo,
+        plataforma: data.plataforma && data.plataforma !== 'N/A' ? data.plataforma : prev.plataforma,
+      }))
+      setExtractStatus('success')
+      setExtractMsg('Dados extraídos com sucesso!')
+    } catch {
+      setExtractStatus('error')
+      setExtractMsg('Não foi possível extrair os dados do link')
+    } finally {
+      setExtracting(false)
+    }
+  }
 
   function handleChange(e) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -165,6 +197,27 @@ export default function VagaModal({ vaga, onClose, onSave }) {
               className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm"
 
             />
+            <button
+              type="button"
+              onClick={handleExtract}
+              disabled={!form.link || extracting}
+              className={`mt-1 text-xs flex items-center gap-1 font-medium ${
+                extractStatus === 'error'
+                  ? 'text-red-500 dark:text-red-400'
+                  : extractStatus === 'success'
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300'
+              } disabled:text-gray-400`}
+            >
+              <span className="material-icons-round text-sm">
+                {extractStatus === 'error' ? 'error_outline' : extractStatus === 'success' ? 'check_circle' : 'auto_awesome'}
+              </span>
+              {extracting
+                ? 'Extraindo...'
+                : extractStatus
+                  ? extractMsg
+                  : 'Preencher automaticamente pelo link'}
+            </button>
           </div>
 
           {/* Data Limite + Status (2 cols) */}
