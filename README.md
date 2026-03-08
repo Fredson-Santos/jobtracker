@@ -1,49 +1,110 @@
 # JobTracker
 
-O **JobTracker** é um sistema completo para organização e acompanhamento de processos seletivos. Ele centraliza suas candidaturas e, através de uma automação inteligente com n8n e IA, monitora sua caixa de entrada para atualizar automaticamente o status das vagas.
+O **JobTracker** é um sistema completo para organização e acompanhamento de processos seletivos. Ele centraliza suas candidaturas e, através de uma automação inteligente com n8n e IA, monitora sua caixa de entrada do Gmail para atualizar automaticamente o status das vagas e enviar notificações via Telegram.
 
 ## 🚀 Funcionalidades
 
-- **Dashboard de Vagas**: Visualize todas as suas candidaturas em um só lugar, com resumo de status e prazos.
-- **Gerenciamento de Candidaturas**: Cadastre, edite e exclua vagas manualmente.
-- **Monitoramento Automático**: Integração com Gmail via n8n para ler respostas de empresas.
-- **Inteligência Artificial**: Analisa e-mails (convites, testes, feedbacks, reprovações) e classifica a relevância.
-- **Atualização em Tempo Real**: Status da candidatura atualizado automaticamente com base na análise da IA.
+- **Dashboard**: Painel com cards de estatísticas (Total, Inscritos, Teste Pendente, Entrevistas) e prazos próximos (7 dias).
+- **Gestão de Vagas**: CRUD completo de candidaturas com filtros por status, ordenação e paginação.
+- **Extração de Vagas**: Preenchimento automático de dados a partir da URL da vaga (integração com scraper externo).
+- **Monitoramento Automático**: Integração com Gmail via n8n — polling a cada minuto por novos e-mails.
+- **IA (Google Gemini)**: Agente de IA via LangChain que analisa e-mails, identifica se são sobre uma vaga monitorada e extrai dados (empresa, status, cargo, resumo).
+- **Atualização em Tempo Real**: Status da candidatura atualizado automaticamente via webhook do n8n.
+- **Notificações Telegram**: Alertas imediatos no Telegram sobre mudanças de status.
+- **Tema Escuro/Claro**: Interface com toggle de tema, persistido no `localStorage`.
 - **Timestamps automáticos**: Cada vaga registra `created_at` e `updated_at` automaticamente.
-- **Alertas**: Notificações sobre movimentações importantes (Em breve).
 
 ## 🛠️ Tech Stack
 
 ### Backend
-- **Framework**: FastAPI (Python)
-- **Banco de Dados**: SQLModel + SQLite (fácil migração para PostgreSQL)
+- **Framework**: FastAPI (Python 3.12)
+- **Banco de Dados**: PostgreSQL
+- **ORM**: SQLModel (SQLAlchemy + Pydantic)
 - **Migrações**: Alembic
-- **Validação**: Pydantic
+- **HTTP Client**: HTTPX (async)
+- **Servidor**: Uvicorn
 
 ### Frontend
-- **Framework**: React (Vite)
+- **Framework**: React 19 (Vite 6)
 - **Estilização**: TailwindCSS
-- **Roteamento**: React Router Dom
+- **Roteamento**: React Router Dom v7
 - **HTTP/API**: Axios
+- **Notificações**: React Hot Toast
 
 ### Automação (n8n)
-- **Workflow**: Monitoramento de Gmail via Polling.
-- **IA**: Integração com LLMs (Google Gemini, Groq ou OpenAI) via LangChain no n8n.
-- **Lógica**: Agente de IA que decide se o e-mail é sobre uma vaga e extrai dados (Empresa, Status, Resumo).
+- **Trigger**: Gmail Polling (a cada minuto)
+- **IA**: Google Gemini via LangChain
+- **Lógica**: Agente de IA que consulta as empresas monitoradas, analisa o e-mail e envia o resultado via webhook
+- **Notificação**: Bot Telegram integrado ao workflow
+
+## 📂 Estrutura do Projeto
+
+```
+jobtracker/
+├── backend/
+│   ├── app/
+│   │   ├── main.py            # Ponto de entrada da API FastAPI
+│   │   ├── models.py          # Modelo Vaga (SQLModel)
+│   │   ├── schemas.py         # Schemas Pydantic (CreateVaga, UpdateVaga, WebhookPayload)
+│   │   ├── crud.py            # Lógica de acesso ao banco (CRUD)
+│   │   ├── database.py        # Configuração PostgreSQL + sessão
+│   │   └── routes/
+│   │       ├── vagas.py       # CRUD de vagas + extração via URL
+│   │       └── alertas.py     # Webhook do n8n + empresas monitoradas
+│   ├── alembic/               # Migrações do banco de dados
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   └── .env
+├── frontend/
+│   ├── src/
+│   │   ├── App.jsx            # Rotas: / (Dashboard) e /vagas (Listagem)
+│   │   ├── api/vagasApi.js    # Cliente Axios centralizado
+│   │   ├── components/        # Layout, VagaCard, VagaModal, StatusBadge, TruncatedText
+│   │   ├── context/           # ThemeContext (escuro/claro)
+│   │   └── pages/             # Dashboard.jsx, Vagas.jsx
+│   ├── package.json
+│   ├── Dockerfile
+│   └── vite.config.js
+├── n8n/                        # Workflow exportado do n8n (Gmail Monitor)
+├── docs/                       # Documentação do projeto
+├── docker-compose.yml
+└── README.md
+```
+
+## 🔌 Endpoints da API
+
+| Método | Rota | Descrição |
+| :--- | :--- | :--- |
+| `GET` | `/api/vagas/` | Listar vagas (paginado: `skip`, `limit`) |
+| `POST` | `/api/vagas/` | Criar nova vaga |
+| `GET` | `/api/vagas/{id}` | Buscar vaga por ID |
+| `PATCH` | `/api/vagas/{id}` | Atualizar campos da vaga |
+| `DELETE` | `/api/vagas/{id}` | Excluir vaga |
+| `GET` | `/api/vagas/empresas` | Listar empresas únicas |
+| `POST` | `/api/vagas/extract` | Extrair dados de uma URL de vaga |
+| `POST` | `/api/alertas/webhook` | Receber webhook do n8n (análise de e-mail) |
+| `GET` | `/api/alertas/empresas-monitoradas` | Listar empresas monitoradas |
 
 ---
 
 ## 📦 Como Rodar
 
+### Pré-requisitos
+
+- Docker e Docker Compose **ou**
+- Python 3.12+ e Node.js 20+
+- PostgreSQL acessível
+
 ### Opção 1: Docker Compose (Recomendado)
 
-A maneira mais fácil de rodar todo o ambiente (Backend + Frontend).
-
-1. **Configuração do Ambiente**:
-   - Vá para a pasta `backend/` e renomeie `.env.example` para `.env`. Configure as variáveis se necessário.
+1. **Configurar variáveis de ambiente**:
+   Crie o arquivo `backend/.env`:
+   ```env
+   DATABASE_URL=postgresql://usuario:senha@host:5432/jobtracker
+   SCRAPER_URL=http://seu-scraper:8001
+   ```
 
 2. **Executar**:
-   Na raiz do projeto, rode:
    ```bash
    docker compose up --build
    ```
@@ -52,15 +113,11 @@ A maneira mais fácil de rodar todo o ambiente (Backend + Frontend).
    - **Backend (API Docs)**: [http://localhost:8015/docs](http://localhost:8015/docs)
    - **Frontend**: [http://localhost:8016](http://localhost:8016)
 
-> **Nota:** As rotas da API ficam sob o prefixo `/api` (ex: `/api/vagas`).
-
 > **Nota:** O frontend no Docker roda via `vite preview`. Para desenvolvimento com hot-reload, use a opção manual abaixo.
 
 ---
 
 ### Opção 2: Execução Manual
-
-Caso queira rodar os serviços individualmente para desenvolvimento.
 
 #### 1. Backend
 
@@ -74,9 +131,8 @@ venv\Scripts\activate
 
 pip install -r requirements.txt
 
-# Renomeie o .env.example para .env e ajuste as configurações se necessário
+# Crie o arquivo .env com DATABASE_URL e SCRAPER_URL
 
-# Rodar o servidor
 uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
@@ -84,18 +140,15 @@ Acesse: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 #### 2. Frontend
 
-Certifique-se de ter o Node.js instalado.
-
 ```bash
 cd frontend
 npm install
 
-# Configure as variáveis de ambiente no arquivo .env (já existente na pasta frontend):
+# Configure o .env na pasta frontend:
 # VITE_PORT=8016
 # VITE_HOST=true
 # VITE_API_URL=http://127.0.0.1:8000
 
-# Rodar modo de desenvolvimento
 npm run dev
 ```
 
