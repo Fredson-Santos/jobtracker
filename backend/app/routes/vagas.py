@@ -1,14 +1,47 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session
 from typing import List
+from pydantic import BaseModel, HttpUrl
 import uuid
+import os
+import httpx
 
 from ..database import get_session
 from .. import crud, schemas
 
+SCRAPER_URL = os.getenv("SCRAPER_URL", "http://localhost:8001")
+
 router = APIRouter(
     prefix="/vagas", tags=["vagas"]
 )
+
+
+class ExtractRequest(BaseModel):
+    url: HttpUrl
+
+
+@router.post("/extract")
+async def extract_vaga_from_link(payload: ExtractRequest):
+    """Proxy para a API de scraping externa."""
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            resp = await client.post(
+                f"{SCRAPER_URL}/extract",
+                json={"url": str(payload.url)},
+            )
+            resp.raise_for_status()
+            return resp.json()
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(
+            status_code=e.response.status_code,
+            detail="Erro na API de extração",
+        )
+    except httpx.RequestError:
+        raise HTTPException(
+            status_code=503,
+            detail="API de extração indisponível",
+        )
+
 
 @router.get("/empresas", response_model=List[str])
 def read_empresas(session: Session = Depends(get_session)):

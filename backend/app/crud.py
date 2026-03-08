@@ -23,10 +23,11 @@ def get_vagas(session: Session, skip: int = 0, limit: int = 100) -> list[Vaga]:
     return session.exec(select(Vaga).offset(skip).limit(limit)).all()
 
 def get_vaga_by_id(session: Session, vaga_id: uuid.UUID) -> Vaga:
-    return session.exec(select(Vaga).where(Vaga.id == vaga_id)).first()
+    # SQLModel should handle this, but being explicit helps with some SQLite versions/drivers
+    return session.get(Vaga, vaga_id)
 
 def update_vaga(session: Session, vaga_id: uuid.UUID, vaga_update: UpdateVaga) -> Vaga:
-    vaga = session.exec(select(Vaga).where(Vaga.id == vaga_id)).first()
+    vaga = session.get(Vaga, vaga_id)
     if not vaga:
         return None
     
@@ -39,7 +40,7 @@ def update_vaga(session: Session, vaga_id: uuid.UUID, vaga_update: UpdateVaga) -
     return vaga
 
 def delete_vaga(session: Session, vaga_id: uuid.UUID) -> bool:
-    vaga = session.exec(select(Vaga).where(Vaga.id == vaga_id)).first()
+    vaga = session.get(Vaga, vaga_id)
     if not vaga:
         return False
     

@@ -1,9 +1,9 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
 
 export default function Layout() {
   const { dark, toggle } = useTheme()
-  const navigate = useNavigate()
+
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans text-gray-900 dark:text-white transition-colors">
@@ -22,10 +22,9 @@ export default function Layout() {
               to="/"
               end
               className={({ isActive }) =>
-                `px-4 py-1.5 rounded-full text-sm font-medium transition-colors no-underline ${
-                  isActive
-                    ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                `px-4 py-1.5 rounded-full text-sm font-medium transition-colors no-underline ${isActive
+                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`
               }
             >
@@ -34,10 +33,9 @@ export default function Layout() {
             <NavLink
               to="/vagas"
               className={({ isActive }) =>
-                `px-4 py-1.5 rounded-full text-sm font-medium transition-colors no-underline ${
-                  isActive
-                    ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                `px-4 py-1.5 rounded-full text-sm font-medium transition-colors no-underline ${isActive
+                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
                 }`
               }
             >
@@ -47,14 +45,6 @@ export default function Layout() {
 
           {/* Actions */}
           <div className="flex items-center gap-1.5">
-            {/* Add button */}
-            <button
-              onClick={() => navigate('/vagas/nova')}
-              className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300"
-              title="Nova vaga"
-            >
-              <span className="material-icons-round text-xl">add</span>
-            </button>
 
             {/* Dark mode toggle */}
             <button
@@ -80,10 +70,9 @@ export default function Layout() {
             to="/"
             end
             className={({ isActive }) =>
-              `flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors no-underline ${
-                isActive
-                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                  : 'text-gray-500 dark:text-gray-400'
+              `flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors no-underline ${isActive
+                ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                : 'text-gray-500 dark:text-gray-400'
               }`
             }
           >
@@ -93,10 +82,9 @@ export default function Layout() {
           <NavLink
             to="/vagas"
             className={({ isActive }) =>
-              `flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors no-underline ${
-                isActive
-                  ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
-                  : 'text-gray-500 dark:text-gray-400'
+              `flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-medium transition-colors no-underline ${isActive
+                ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400'
+                : 'text-gray-500 dark:text-gray-400'
               }`
             }
           >

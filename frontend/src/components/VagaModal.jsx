@@ -1,7 +1,21 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { v4 as uuidv4 } from 'uuid'
+import { extractVagaFromLink } from '../api/vagasApi'
 
-const PLATAFORMAS = ['Gupy', 'Eureca', 'Universia', 'Outra']
+
+const PLATAFORMAS = [
+  'LinkedIn',
+  'Gupy',
+  'Indeed',
+  'InfoJobs',
+  'Vagas.com',
+  'Eureca',
+  'CIEE',
+  'Universia',
+  'Outra'
+]
+
 const STATUS_OPTIONS = ['Inscrito', 'Teste Pendente', 'Entrevista', 'Feedback', 'Rejeitado']
 
 export default function VagaModal({ vaga, onClose, onSave }) {
@@ -29,6 +43,37 @@ export default function VagaModal({ vaga, onClose, onSave }) {
     }
   }, [vaga, isEdit])
 
+  const [extracting, setExtracting] = useState(false)
+  const [extractStatus, setExtractStatus] = useState(null) // 'success' | 'error' | null
+  const [extractMsg, setExtractMsg] = useState('')
+
+  async function handleExtract() {
+    if (!form.link) return
+    setExtracting(true)
+    setExtractStatus(null)
+    try {
+      const data = await extractVagaFromLink(form.link)
+      if (data.erro) {
+        setExtractStatus('error')
+        setExtractMsg('Erro ao acessar vaga. Tente preencher manualmente.')
+        return
+      }
+      setForm((prev) => ({
+        ...prev,
+        empresa: data.empresa && data.empresa !== 'N/A' ? data.empresa : prev.empresa,
+        cargo: data.cargo && data.cargo !== 'N/A' ? data.cargo : prev.cargo,
+        plataforma: data.plataforma && data.plataforma !== 'N/A' ? data.plataforma : prev.plataforma,
+      }))
+      setExtractStatus('success')
+      setExtractMsg('Dados extraídos com sucesso!')
+    } catch {
+      setExtractStatus('error')
+      setExtractMsg('Não foi possível extrair os dados do link')
+    } finally {
+      setExtracting(false)
+    }
+  }
+
   function handleChange(e) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
@@ -48,9 +93,10 @@ export default function VagaModal({ vaga, onClose, onSave }) {
     }
   }
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+
+      className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
       onClick={onClose}
       style={{ animation: 'fadeIn 0.2s ease' }}
     >
@@ -60,23 +106,26 @@ export default function VagaModal({ vaga, onClose, onSave }) {
         style={{ animation: 'slideUp 0.25s ease' }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-6 pb-2">
-          <h3 className="font-heading font-bold text-xl text-gray-900 dark:text-white">
+        <div className="flex items-center justify-between px-5 pt-4 pb-1">
+          <h3 className="font-heading font-bold text-base text-gray-900 dark:text-white">
             {isEdit ? 'Editar Vaga' : 'Nova Vaga'}
           </h3>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
           >
-            <span className="material-icons-round text-xl">close</span>
+            <span className="material-icons-round text-lg">close</span>
           </button>
         </div>
 
+
         {/* Form */}
-        <form onSubmit={handleSubmit} className="px-6 pb-6 pt-2 space-y-4">
+        <form onSubmit={handleSubmit} className="px-5 pb-4 pt-2 space-y-2.5">
+
           {/* Empresa */}
           <div>
-            <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
+            <label className="flex items-center gap-1 text-xs font-semibold text-gray-700 dark:text-gray-200 mb-1">
+
               <span className="material-icons-round text-base text-gray-400">business</span>
               Empresa
             </label>
@@ -86,13 +135,15 @@ export default function VagaModal({ vaga, onClose, onSave }) {
               onChange={handleChange}
               placeholder="Ex: Google, Nubank..."
               required
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm"
+
             />
           </div>
 
           {/* Cargo */}
           <div>
-            <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
+            <label className="flex items-center gap-1 text-xs font-semibold text-gray-700 dark:text-gray-200 mb-1">
+
               <span className="material-icons-round text-base text-gray-400">work_outline</span>
               Cargo
             </label>
@@ -101,13 +152,15 @@ export default function VagaModal({ vaga, onClose, onSave }) {
               value={form.cargo}
               onChange={handleChange}
               placeholder="Ex: Estágio em Desenvolvimento"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm"
+
             />
           </div>
 
           {/* Plataforma */}
           <div>
-            <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
+            <label className="flex items-center gap-1 text-xs font-semibold text-gray-700 dark:text-gray-200 mb-1">
+
               <span className="material-icons-round text-base text-gray-400">category</span>
               Plataforma
             </label>
@@ -116,7 +169,8 @@ export default function VagaModal({ vaga, onClose, onSave }) {
                 name="plataforma"
                 value={form.plataforma}
                 onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition pr-10"
+                className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition pr-10 text-sm"
+
               >
                 {PLATAFORMAS.map((p) => (
                   <option key={p} value={p}>{p}</option>
@@ -130,7 +184,8 @@ export default function VagaModal({ vaga, onClose, onSave }) {
 
           {/* Link */}
           <div>
-            <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
+            <label className="flex items-center gap-1 text-xs font-semibold text-gray-700 dark:text-gray-200 mb-1">
+
               <span className="material-icons-round text-base text-gray-400">link</span>
               Link da Candidatura
             </label>
@@ -139,14 +194,37 @@ export default function VagaModal({ vaga, onClose, onSave }) {
               value={form.link}
               onChange={handleChange}
               placeholder="https://..."
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-sm"
+
             />
+            <button
+              type="button"
+              onClick={handleExtract}
+              disabled={!form.link || extracting}
+              className={`mt-1 text-xs flex items-center gap-1 font-medium ${
+                extractStatus === 'error'
+                  ? 'text-red-500 dark:text-red-400'
+                  : extractStatus === 'success'
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300'
+              } disabled:text-gray-400`}
+            >
+              <span className="material-icons-round text-sm">
+                {extractStatus === 'error' ? 'error_outline' : extractStatus === 'success' ? 'check_circle' : 'auto_awesome'}
+              </span>
+              {extracting
+                ? 'Extraindo...'
+                : extractStatus
+                  ? extractMsg
+                  : 'Preencher automaticamente pelo link'}
+            </button>
           </div>
 
           {/* Data Limite + Status (2 cols) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
+              <label className="flex items-center gap-1 text-xs font-semibold text-gray-700 dark:text-gray-200 mb-1">
+
                 <span className="material-icons-round text-base text-gray-400">event</span>
                 Data Limite
               </label>
@@ -159,7 +237,8 @@ export default function VagaModal({ vaga, onClose, onSave }) {
               />
             </div>
             <div>
-              <label className="flex items-center gap-1.5 text-sm font-semibold text-gray-700 dark:text-gray-200 mb-1.5">
+              <label className="flex items-center gap-1 text-xs font-semibold text-gray-700 dark:text-gray-200 mb-1">
+
                 <span className="material-icons-round text-base text-gray-400">flag</span>
                 Status
               </label>
@@ -168,7 +247,8 @@ export default function VagaModal({ vaga, onClose, onSave }) {
                   name="status"
                   value={form.status}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition pr-10"
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white appearance-none focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition pr-10 text-sm"
+
                 >
                   {STATUS_OPTIONS.map((s) => (
                     <option key={s} value={s}>{s}</option>
@@ -182,11 +262,12 @@ export default function VagaModal({ vaga, onClose, onSave }) {
           </div>
 
           {/* Buttons */}
-          <div className="flex flex-col gap-3 pt-2">
+          <div className="flex flex-col gap-2 pt-1">
             <button
               type="submit"
-              className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors shadow-sm"
+              className="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors shadow-sm"
             >
+
               {isEdit ? 'Salvar Alterações' : 'Salvar Vaga'}
             </button>
             <button
@@ -199,6 +280,8 @@ export default function VagaModal({ vaga, onClose, onSave }) {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
+
