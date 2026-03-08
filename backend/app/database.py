@@ -4,12 +4,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/jobtracker.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://jobtracker:jobtracker@localhost:5432/jobtracker")
 
-
-connect_args = {"check_same_thread": False} if "sqlite" in DATABASE_URL else {}
-
-engine = create_engine(DATABASE_URL, echo=True, connect_args=connect_args)
+engine = create_engine(DATABASE_URL, echo=True)
 
 def create_db_and_table():
     SQLModel.metadata.create_all(engine)

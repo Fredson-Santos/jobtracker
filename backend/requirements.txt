@@ -5,4 +5,4 @@ pydantic-settings
 python-dotenv
 httpx
 alembic
-# psycopg2-binary # Uncomment for PostgreSQL production
+psycopg2-binary
