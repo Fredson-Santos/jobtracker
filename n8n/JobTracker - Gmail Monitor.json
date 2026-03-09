@@ -10,80 +10,42 @@
             }
           ]
         },
+        "simple": false,
         "filters": {
           "readStatus": "both"
-        }
+        },
+        "options": {}
       },
-      "id": "fbd36aad-275e-465c-bef4-11df6b2f155d",
+      "id": "daddd879-22e9-44d8-9e10-f5cf5289edb9",
       "name": "Gmail Trigger",
       "type": "n8n-nodes-base.gmailTrigger",
       "typeVersion": 1,
       "position": [
-        -48,
-        0
+        -1072,
+        64
       ],
       "credentials": {
         "gmailOAuth2": {
-          "id": "bZDtyjRMCYt0pMN9",
-          "name": "Gmail account"
+          "id": "0GCs0XscireMeGIQ",
+          "name": "Gmail account 2"
         }
       }
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "={{ $json.Subject }}\n\n{{ $json.snippet }}\n\n{{ $json.internalDate }}\n\n{{ $json.From }}",
-        "options": {
-          "systemMessage": "=prompt jobtracker \n\nContexto:\nMonitoramento automatizado de candidaturas de emprego.\n\nFunção do Agente:\nAtuar como analisador de e-mails relacionados a processos seletivos.\n\nInstruções Obrigatórias:\n\nAntes de qualquer análise, você DEVE obrigatoriamente executar a tool HTTP Request, sem enviar parâmetros, para obter a lista atualizada de empresas monitoradas.\n\nApós receber a lista de empresas monitoradas:\n\nVerifique se o e-mail recebido menciona explicitamente alguma das empresas retornadas.\n\nO e-mail somente será considerado relevante se estiver claramente relacionado a uma das empresas monitoradas.\n\nCaso o e-mail não esteja relacionado a nenhuma empresa monitorada, retorne exatamente:\n\nemail não relevante\n\nCaso o e-mail seja relevante, extraia as seguintes informações (quando disponíveis):\n\nempresa\n\nnovo_status (ex: entrevista agendada, reprovação, aprovação, teste técnico, etc.)\n\ncargo\n\nremetente\n\nassunto\n\nresumo (breve descrição do conteúdo)\n\ndata_evento (data mencionada no e-mail relacionada ao processo)\n\nSe relevante, retorne exclusivamente o seguinte JSON no formato abaixo:\n\n{\n  \"empresa\": \"\",\n  \"novo_status\": \"\",\n  \"cargo\": \"\",\n  \"remetente\": \"\",\n  \"assunto\": \"\",\n  \"resumo\": \"\",\n  \"data_evento\": \"\"\n}\n\nRegras adicionais:\n\nNão invente informações.\n\nNão retorne texto fora do formato especificado.\n\nNunca pule a etapa de chamada da tool HTTP Request.\n\nA validação da relevância depende obrigatoriamente da lista retornada pela tool."
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 3.1,
-      "position": [
-        368,
-        0
-      ],
-      "id": "6936db78-e470-4671-957e-85370c574a28",
-      "name": "AI Agent1"
     },
     {
       "parameters": {},
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
       "position": [
-        1360,
-        -112
+        592,
+        -48
       ],
-      "id": "1c71acf8-a55a-4053-bf8c-ef86d3e1e787",
+      "id": "e8dad574-ac72-423c-bb41-c62c4fe7c38b",
       "name": "No Operation, do nothing"
     },
     {
       "parameters": {
-        "url": "http://192.168.18.100:8015/api/alertas/empresas-monitoradas",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "accept",
-              "value": "application/json"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequestTool",
-      "typeVersion": 4.4,
-      "position": [
-        512,
-        208
-      ],
-      "id": "93bf960e-fa9b-4446-b657-c3ce638399a2",
-      "name": "BuscaEmpresas"
-    },
-    {
-      "parameters": {
         "method": "POST",
-        "url": "http://192.168.18.100:8015/api/alertas/webhook",
+        "url": "http://172.17.0.1:8015/api/alertas/webhook",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -122,7 +84,7 @@
             },
             {
               "name": "data_evento",
-              "value": "={{ $json.data_evento }}"
+              "value": "={{ $json.data_evento_formatada }}"
             }
           ]
         },
@@ -131,36 +93,11 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1040,
-        -112
+        272,
+        -48
       ],
-      "id": "99d1e11d-ba86-42f5-8ce8-65051b7b5c09",
+      "id": "fcedb360-3009-485a-aa82-97f3aabd8ab6",
       "name": "Atualiza Status"
-    },
-    {
-      "parameters": {
-        "chatId": "1252121008",
-        "text": "=🚀 *Nova atualização da empresa {{ $json.detalhes[0].empresa }}!*  \n\n📍 *Vaga:* {{ $json.email.assunto }} \n\n🔄 *Status:* {{ $json.detalhes[0].status_novo }}\n\n📝 *Resumo do e-mail:* {{ $json.email.resumo }}  \n\n📅 *Data do processamento:* 19/02/26",
-        "additionalFields": {
-          "appendAttribution": false,
-          "parse_mode": "Markdown"
-        }
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        1200,
-        -112
-      ],
-      "id": "2feb88bd-487e-4642-8875-3b7d40d727df",
-      "name": "Send a text message",
-      "webhookId": "2c022707-63f3-49f2-8b0d-61e415d60075",
-      "credentials": {
-        "telegramApi": {
-          "id": "HXZZL66atDBwIMGJ",
-          "name": "JobTrackerr"
-        }
-      }
     },
     {
       "parameters": {
@@ -174,7 +111,7 @@
           "conditions": [
             {
               "id": "f3157506-c03e-43cc-a6c4-76f4a8516be6",
-              "leftValue": "={{ $json.output }}",
+              "leftValue": "={{ $json.text }}",
               "rightValue": "email não relevante",
               "operator": {
                 "type": "string",
@@ -189,23 +126,122 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        688,
-        0
+        -80,
+        64
       ],
-      "id": "30f61117-493c-41f4-9d9b-707325493853",
+      "id": "decdfc6e-7101-4cef-8c4f-1296476c10d5",
       "name": "Email e relevante?"
     },
     {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        112,
+        160
+      ],
+      "id": "cb7d5be7-239a-435b-a23f-ef1655686df0",
+      "name": "No Operation, do nothing1"
+    },
+    {
       "parameters": {
+        "chatId": "1252121008",
+        "text": "=🚀 *Nova atualização da empresa {{ $json.detalhes[0].empresa }}!*  \n\n📍 *Vaga:* {{ $('Formata JSON').item.json.cargo }}\n\n🔄 *Status:* {{ $json.detalhes[0].status_novo }}\n\n📝 *Resumo do e-mail:* {{ $json.email.resumo }}  \n\n📅 *Data da atualizacao:* {{ $('Edit Fields').item.json.date }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        432,
+        -48
+      ],
+      "id": "ecc33334-e6b6-461a-aa36-568005e8bcfd",
+      "name": "Eniva Atualização",
+      "webhookId": "2c022707-63f3-49f2-8b0d-61e415d60075",
+      "credentials": {
+        "telegramApi": {
+          "id": "HXZZL66atDBwIMGJ",
+          "name": "JobTrackerr"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ATUALIZADO: Agora lê da propriedade \"text\" gerada pelo LLM Chain\nlet rawData = $input.first().json.text;\n\n// ----------------------------\n// BLOQUEIO DE NÃO RELEVANTE\n// ----------------------------\nif (!rawData || rawData.trim().toLowerCase() === \"email não relevante\") {\n  return [\n    {\n      erro: \"EMAIL_NAO_RELEVANTE\"\n    }\n  ];\n}\n\n// ----------------------------\n// LIMPEZA\n// ----------------------------\n// Remove blocos de markdown caso a IA ainda insista em mandar\nrawData = rawData.replace(/```json|```/g, \"\").trim();\n\nlet parsedData;\n\ntry {\n  parsedData = JSON.parse(rawData);\n} catch (error) {\n  return [\n    {\n      erro: \"JSON_INVALIDO_DA_IA\",\n      raw: rawData\n    }\n  ];\n}\n\n// ----------------------------\n// FUNÇÃO UNIVERSAL DE FORMATAÇÃO\n// ----------------------------\nfunction formatarData(valor) {\n  if (!valor) return { original: null, formatada: \"Data não informada\" };\n\n  let dateObj;\n\n  if (!isNaN(Number(valor))) {\n    let unix = Number(valor);\n    if (unix.toString().length === 10) {\n      unix = unix * 1000;\n    }\n    dateObj = new Date(unix);\n  } else {\n    dateObj = new Date(valor);\n  }\n\n  if (isNaN(dateObj.getTime())) {\n    return { original: valor, formatada: \"Data inválida\" };\n  }\n\n  const formatter = new Intl.DateTimeFormat('pt-BR', {\n    timeZone: 'America/Sao_Paulo',\n    hour12: false,\n    day: '2-digit',\n    month: '2-digit',\n    year: 'numeric',\n    hour: '2-digit',\n    minute: '2-digit'\n  });\n\n  const parts = formatter.formatToParts(dateObj);\n  const get = (type) => parts.find(p => p.type === type)?.value;\n\n  return {\n    original: valor,\n    formatada: `${get('hour')}:${get('minute')} ${get('day')}-${get('month')}-${get('year')}`\n  };\n}\n\n// ----------------------------\n// PROCESSAMENTO DAS DATAS\n// ----------------------------\n\n// Data do evento (vem da IA)\nconst evento = formatarData(parsedData.data_evento);\n\n// Data da atualização (vem do Gmail Trigger)\nconst atualizacao = formatarData($('Gmail Trigger').first().json.internalDate);\n\n// ----------------------------\n// RETORNO FINAL\n// ----------------------------\n\nreturn [\n  {\n    empresa: parsedData.empresa || \"Não identificada\",\n    novo_status: parsedData.novo_status || \"Status não definido\",\n    cargo: parsedData.cargo || \"Não informado\",\n    remetente: parsedData.remetente || null,\n    assunto: parsedData.assunto || null,\n    resumo: parsedData.resumo || null,\n\n    data_evento_original: evento.original,\n    data_evento_formatada: evento.formatada,\n\n    data_atualizacao_original: atualizacao.original,\n    data_atualizacao_formatada: atualizacao.formatada\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        112,
+        -48
+      ],
+      "id": "9bc906b6-2178-44e4-9c8a-395cc98bc063",
+      "name": "Formata JSON"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Você é um Analista de Recrutamento Automatizado.\nA data atual de recebimento deste e-mail é: {{ $('Edit Fields').item.json.date }}. Use esta data como referência principal para corrigir anos ou meses incompletos em agendamentos futuros.\n\nAqui está a lista exata de vagas que estou monitorando em formato JSON:\n{{ JSON.stringify($('BuscaEmpresas').item.json.empresas_monitoradas, null, 2) }}\n\nAqui está o e-mail que acabei de receber:\nRemetente: {{ $('Edit Fields').item.json.headers.from }}\nAssunto: {{ $('Edit Fields').item.json.subject }}\nCorpo do E-mail: {{ $('Edit Fields').item.json.text }}\n\nREGRAS CRÍTICAS DE RELEVÂNCIA (LEIA COM ATENÇÃO):\nPara este e-mail ser considerado RELEVANTE, ele deve obrigatoriamente cruzar com os dados da lista acima seguindo estas DUAS regras simultâneas:\n1. O valor da chave \"empresa\" da lista DEVE aparecer no Remetente, Assunto ou Corpo do E-mail.\n2. O valor da chave \"cargo\" correspondente àquela empresa na lista DEVE ser compatível com a vaga mencionada no e-mail.\n\nSE O E-MAIL NÃO ATENDER ÀS DUAS REGRAS ACIMA:\nEncerre imediatamente a análise e retorne EXATAMENTE e APENAS o texto abaixo, sem aspas, sem formatação e sem explicações:\nemail não relevante\n\nPASSO 2: EXTRAÇÃO DE DADOS (Apenas se o e-mail for 100% relevante)\nSe a empresa e o cargo baterem com a lista, extraia as seguintes informações:\n- empresa: O nome da empresa exato conforme consta na lista.\n- novo_status: Deduza semanticamente (Ex: \"Link Zoom/Meet\" = Entrevista; \"Teste/Hackerrank\" = Teste Técnico; \"Infelizmente/Encerrada\" = Reprovação; \"Aprovado\" = Aprovado; \"Bate-papo\" = Triagem RH; Outros = Atualização de Processo). Evite usar palavras rasas como apenas \"Atualização\" \"Atualização de Processo\", deduza o que o email quer dizer.\n\n- cargo: O nome da vaga mencionada no e-mail (deve ser compatível com a lista).\n- remetente: Quem enviou o e-mail.\n- assunto: O assunto original.\n- resumo: Uma frase curta e objetiva sobre o que trata o e-mail.\n- data_evento: Extraia a data e o horário de qualquer evento futuro agendado (como entrevistas, testes, dinâmicas). Corrija erros de digitação óbvios (ex: \"03/003/20206\" deve ser corrigido para \"03/03/2026\"). É OBRIGATÓRIO formatar a saída no padrão universal \"YYYY-MM-DD HH:mm\" (Exemplo: \"2026-03-03 14:00\"). Use null apenas se não houver agendamento de data explícito.\n\nPASSO 3: FORMATO DE RESPOSTA OBRIGATÓRIO (PROIBIDO TEXTO ADICIONAL)\nSe o e-mail for relevante, sua resposta DEVE ser EXATAMENTE um único objeto JSON válido.\nÉ estritamente proibido usar blocos ```json, escrever textos de introdução ou explicar seu raciocínio. O primeiro caractere da sua resposta DEVE ser obrigatoriamente a chave \"{\".\n\n{\n  \"empresa\": \"Nome da Empresa\",\n  \"novo_status\": \"Status\",\n  \"cargo\": \"Nome do Cargo\",\n  \"remetente\": \"Remetente\",\n  \"assunto\": \"Assunto\",\n  \"resumo\": \"Resumo do e-mail\",\n  \"data_evento\": \"YYYY-MM-DD HH:mm\"\n}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -448,
+        64
+      ],
+      "id": "761dbb69-fb55-444e-8a5c-8dada89e17e4",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "url": "http://172.17.0.1:8015/api/alertas/empresas-monitoradas",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -640,
+        64
+      ],
+      "id": "94e54e59-7fa7-424a-b294-80ce3af2fe9f",
+      "name": "BuscaEmpresas"
+    },
+    {
+      "parameters": {
+        "model": "moonshotai/kimi-k2-instruct-0905",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        240
+      ],
+      "id": "3e447d0c-71b1-4c3a-b129-6a26e9e15a7a",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "Uhw4eLVMuwe7TUif",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
         "options": {}
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        368,
-        208
+        -448,
+        240
       ],
-      "id": "731e662f-f4f6-4f8e-a0bd-43ac7a22e03b",
+      "id": "66a857a2-c1c3-44b0-83dc-529ed9909455",
       "name": "Google Gemini Chat Model",
       "credentials": {
         "googlePalmApi": {
@@ -216,27 +252,44 @@
     },
     {
       "parameters": {
-        "jsCode": ";// Supondo que o JSON venha dentro de uma propriedade chamada 'output'\nconst rawData = $input.first().json.output;\n\n// Transforma a string JSON em um objeto real\nconst parsedData = JSON.parse(rawData);\n\n// Retorna os dados separados\nreturn {\n  empresa: parsedData.empresa,\n  novo_status: parsedData.novo_status,\n  cargo: parsedData.cargo,\n  remetente: parsedData.remetente,\n  assunto: parsedData.assunto,\n  resumo: parsedData.resumo,\n  data_evento: parsedData.data_evento\n};"
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9bef22b0-a9c9-4158-b238-9dace25addb8",
+              "name": "headers.from",
+              "value": "={{ $json.headers.from }}",
+              "type": "string"
+            },
+            {
+              "id": "f854b884-882b-4a39-93d3-a9714fcc106e",
+              "name": "text",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "5d7b0014-9509-4fca-8acf-c413f9eb0858",
+              "name": "subject",
+              "value": "={{ $json.subject }}",
+              "type": "string"
+            },
+            {
+              "id": "631b7735-d475-4acc-8e5f-767e34e2684f",
+              "name": "date",
+              "value": "={{ $json.date.toDateTime().setZone('America/Sao_Paulo').toFormat('HH:mm:ss dd/MM/yyyy') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
       },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
       "position": [
-        880,
-        -112
+        -864,
+        64
       ],
-      "id": "0ad8dc27-6b7b-4b3d-941d-6808d7f1a1d6",
-      "name": "Code in JavaScript"
-    },
-    {
-      "parameters": {},
-      "type": "n8n-nodes-base.noOp",
-      "typeVersion": 1,
-      "position": [
-        880,
-        96
-      ],
-      "id": "299686e4-86fb-4eb1-9a1d-a6b5055de7d3",
-      "name": "No Operation, do nothing1"
+      "id": "2e98364d-49b1-4953-8aad-09feb3e472f3",
+      "name": "Edit Fields"
     }
   ],
   "pinData": {},
@@ -245,30 +298,8 @@
       "main": [
         [
           {
-            "node": "AI Agent1",
+            "node": "Edit Fields",
             "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "AI Agent1": {
-      "main": [
-        [
-          {
-            "node": "Email e relevante?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "BuscaEmpresas": {
-      "ai_tool": [
-        [
-          {
-            "node": "AI Agent1",
-            "type": "ai_tool",
             "index": 0
           }
         ]
@@ -278,18 +309,7 @@
       "main": [
         [
           {
-            "node": "Send a text message",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send a text message": {
-      "main": [
-        [
-          {
-            "node": "No Operation, do nothing",
+            "node": "Eniva Atualização",
             "type": "main",
             "index": 0
           }
@@ -300,7 +320,7 @@
       "main": [
         [
           {
-            "node": "Code in JavaScript",
+            "node": "Formata JSON",
             "type": "main",
             "index": 0
           }
@@ -314,22 +334,71 @@
         ]
       ]
     },
+    "Eniva Atualização": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formata JSON": {
+      "main": [
+        [
+          {
+            "node": "Atualiza Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Email e relevante?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BuscaEmpresas": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        []
+      ]
+    },
     "Google Gemini Chat Model": {
       "ai_languageModel": [
         [
           {
-            "node": "AI Agent1",
+            "node": "Basic LLM Chain",
             "type": "ai_languageModel",
             "index": 0
           }
         ]
       ]
     },
-    "Code in JavaScript": {
+    "Edit Fields": {
       "main": [
         [
           {
-            "node": "Atualiza Status",
+            "node": "BuscaEmpresas",
             "type": "main",
             "index": 0
           }
@@ -343,11 +412,18 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "bc830437-b40a-4da2-9c32-462363a21c5f",
+  "versionId": "6058970a-c11b-4a93-b274-8baa9f9bba3a",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "3dffa96cf2c9a89565214c820c55941c2b875306a6640d65860fc06a1ba9f762"
   },
-  "id": "-PJUCoJFfkt8D9ljTxnVm",
-  "tags": []
+  "id": "DrvwOO0P4Mt9sxZx",
+  "tags": [
+    {
+      "updatedAt": "2026-03-02T21:04:28.023Z",
+      "createdAt": "2026-03-02T21:04:28.023Z",
+      "id": "N9cjgFzQpKIRlOVd",
+      "name": "Production"
+    }
+  ]
 }
